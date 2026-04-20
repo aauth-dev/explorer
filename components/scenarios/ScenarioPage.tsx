@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { Scenario } from "@/lib/types";
-import { useScenarioStore } from "@/lib/store";
+import { DEFAULT_DETAILS_PANEL_WIDTH_PX, useScenarioStore } from "@/lib/store";
 import { SequenceDiagram } from "@/components/core/SequenceDiagram";
 import { JWTViewer } from "@/components/core/JWTViewer";
 import { HeaderInspector } from "@/components/core/HeaderInspector";
@@ -23,12 +23,11 @@ const CATEGORY_COLORS = {
   advanced: "text-orange-400 bg-orange-500/10",
 };
 
-const DEFAULT_DETAILS_WIDTH_PX = 475;
 const MIN_DETAILS_WIDTH_PX = 260;
 
 function getDetailsWidthBounds() {
   if (typeof window === "undefined") {
-    return { min: MIN_DETAILS_WIDTH_PX, max: DEFAULT_DETAILS_WIDTH_PX };
+    return { min: MIN_DETAILS_WIDTH_PX, max: DEFAULT_DETAILS_PANEL_WIDTH_PX };
   }
   const vw = window.innerWidth;
   // Leave room for sidebar (~72–288px), padding, and a usable diagram strip.
@@ -42,9 +41,10 @@ interface ScenarioPageProps {
 
 export function ScenarioPage({ scenario }: ScenarioPageProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
-  const [detailsPanelWidthPx, setDetailsPanelWidthPx] = useState(DEFAULT_DETAILS_WIDTH_PX);
   const [isLg, setIsLg] = useState(false);
   const resizeStartRef = useRef<{ pointerId: number; startX: number; startW: number } | null>(null);
+  const detailsPanelWidthPx = useScenarioStore((s) => s.detailsPanelWidthPx);
+  const setDetailsPanelWidthPx = useScenarioStore((s) => s.setDetailsPanelWidthPx);
   const detailsWidthRef = useRef(detailsPanelWidthPx);
   const { currentStep, setCurrentStep, reset, activeVariant, setActiveVariant } = useScenarioStore();
 
@@ -73,7 +73,7 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
     window.addEventListener("resize", clamp);
     clamp();
     return () => window.removeEventListener("resize", clamp);
-  }, [isLg]);
+  }, [isLg, setDetailsPanelWidthPx]);
 
   const onDetailsResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isLg) return;
@@ -120,15 +120,15 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
-  }, [isLg]);
+  }, [isLg, setDetailsPanelWidthPx]);
 
   const onDetailsResizeDoubleClick = useCallback((e: React.MouseEvent) => {
     if (!isLg) return;
     e.preventDefault();
     const { min, max } = getDetailsWidthBounds();
-    const w = Math.min(max, Math.max(min, DEFAULT_DETAILS_WIDTH_PX));
+    const w = Math.min(max, Math.max(min, DEFAULT_DETAILS_PANEL_WIDTH_PX));
     setDetailsPanelWidthPx(w);
-  }, [isLg]);
+  }, [isLg, setDetailsPanelWidthPx]);
 
   const variantData =
     activeVariant === "interactive" && scenario.interactive
@@ -213,7 +213,8 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         {/* Sequence diagram + step controller — grows with viewport */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col border-b border-border lg:border-b-0">
-          <div className="min-h-0 flex-1 overflow-auto p-6">
+          {/* Floor height so the diagram stays the hero; step copy scrolls in a shorter band below */}
+          <div className="min-h-[min(32vh,15rem)] flex-1 overflow-auto p-6">
             <SequenceDiagram
               participants={participants}
               steps={steps}
@@ -222,9 +223,9 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
             />
           </div>
 
-          {/* Step info */}
+          {/* Step info — keep this band modest (20rem was ~1/3 of many viewports); scroll inside */}
           {step && (
-            <div className="shrink-0 overflow-hidden border-t border-border bg-muted/10 px-4 py-3">
+            <div className="max-h-[min(22vh,10rem)] shrink-0 overflow-y-auto overscroll-contain border-t border-border bg-muted/10 px-4 py-3">
               <div className="mb-2 flex min-w-0 items-center gap-2">
                 <span className="min-w-0 break-all font-mono text-[10px] text-muted-foreground">
                   {step.method} {step.url}
@@ -317,7 +318,7 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                 if (e.key === "Home") {
                   e.preventDefault();
                   const { min: lo, max: hi } = getDetailsWidthBounds();
-                  setDetailsPanelWidthPx(Math.min(hi, Math.max(lo, DEFAULT_DETAILS_WIDTH_PX)));
+                  setDetailsPanelWidthPx(Math.min(hi, Math.max(lo, DEFAULT_DETAILS_PANEL_WIDTH_PX)));
                 }
                 if (e.key === "End") {
                   e.preventDefault();
