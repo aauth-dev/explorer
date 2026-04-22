@@ -134,20 +134,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar border-r border-border">
-      {/* Header */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-border shrink-0">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-[10px] font-bold text-white">A²</span>
-          </div>
-          <span className="font-semibold text-sm tracking-tight">AAuth Explorer</span>
-        </Link>
-        {onClose && (
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded">
+      {onClose && (
+        <div className="flex h-12 items-center justify-end px-2 border-b border-border shrink-0 lg:hidden">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close sidebar">
             <X className="h-4 w-4" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-4 px-3">
