@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: "AAuth Protocol Explorer",
   description:
     "Interactive visualizer for the AAuth autonomous authorization protocol — signing modes, resource access patterns, missions, and federation flows.",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
