@@ -114,7 +114,7 @@ export interface S256ChainLink {
 
 // ─── Scenarios ────────────────────────────────────────────────────────────────
 
-export type ScenarioCategory = "signing" | "access" | "missions" | "advanced";
+export type ScenarioCategory = "signing" | "access" | "missions" | "advanced" | "bootstrap";
 
 export interface ScenarioVariant {
   description: string;

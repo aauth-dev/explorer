@@ -1,0 +1,192 @@
+{
+  "id": "bootstrap-renewal-web-app",
+  "title": "Token Renewal — Web App (WebAuthn)",
+  "description": "After an agent token expires, the browser agent renews without re-involving the PS. The agent fetches a fresh challenge from the agent server's webauthn_endpoint, invokes navigator.credentials.get() to produce a WebAuthn assertion (signed by the device credential enrolled at bootstrap), generates a new ephemeral signing key, and POSTs to refresh_endpoint. The agent server verifies the assertion, looks up the binding by credential rawId, and issues a fresh agent token.",
+  "spec_section": "§ Renewal / Web App",
+  "category": "bootstrap",
+  "participants": [
+    {
+      "id": "user",
+      "label": "User",
+      "type": "user"
+    },
+    {
+      "id": "agent",
+      "label": "Agent (Browser)",
+      "type": "agent"
+    },
+    {
+      "id": "agent-server",
+      "label": "Agent Server",
+      "type": "agent"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "agent-server",
+      "label": "Fetch WebAuthn assertion challenge",
+      "method": "GET",
+      "url": "https://agent.example/webauthn?type=get",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store"
+      },
+      "response_body": {
+        "challenge": "cmVmcmVzaF9jaGFsbGVuZ2VfYnl0ZXNfaGVyZQ"
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent fetches a single-use challenge from the agent server's webauthn_endpoint.",
+        "type=get signals this is a renewal (assertion), not a registration (create).",
+        "The request is unsigned — the agent MUST NOT include user identifiers.",
+        "Agent server stores the challenge in a single-use, time-limited registry (expires ~5 minutes).",
+        "The challenge response contains ONLY the challenge — no user-identifying information."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "user",
+      "label": "WebAuthn assertion (user verifies)",
+      "method": "LOCAL",
+      "url": "navigator.credentials.get()",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "credential": {
+          "id": "Y3JlZGVudGlhbF9pZF9oZXJl",
+          "rawId": "Y3JlZGVudGlhbF9pZF9oZXJl",
+          "type": "public-key",
+          "response": {
+            "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiY21WbWNtVnphRjlqYUdGc2JHOXVZV3hmWW5sMFpYTmZhR1Z5WlEiLCJvcmlnaW4iOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJjcm9zc09yaWdpbiI6ZmFsc2V9",
+            "authenticatorData": "U0pZTjVZZ09qR2gwTkJjUFpIWmdXNF9rcnJtaWhqTEhtVnp6dW9NZGwyTUZBQUFBQUE",
+            "signature": "MEUCIQDX5TZuO_1pHNFXMfp9XRjPJbf19GWoiP_5s5ZhNHNAIgQE3kLLdwWfJU5tB1cEbBLpQCm7_mxN0EW_VoORijY",
+            "userHandle": "ZFhObGNsOXpkV0l4TWpNME5UWT0"
+          }
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent calls navigator.credentials.get() with the challenge and the agent server's rpId.",
+        "Uses a discoverable credential (no allowCredentials list) — the authenticator finds the enrolled credential.",
+        "User verifies identity with their authenticator (Touch ID, Face ID, Windows Hello, etc.).",
+        "The authenticator signs the challenge with the private key enrolled at bootstrap.",
+        "The resulting assertion proves: this device holds the credential bound to this agent identity."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "agent",
+      "to": "agent",
+      "label": "Generate new ephemeral signing key",
+      "method": "LOCAL",
+      "url": "crypto.subtle.generateKey()",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "new_ephemeral_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+          "kid": "agent-key-2"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent generates a fresh Ed25519 signing key pair using the Web Crypto API.",
+        "This new ephemeral key will be bound to the fresh agent token.",
+        "The private key never leaves the browser (held in memory or WebCrypto non-extractable key)."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "agent",
+      "to": "agent-server",
+      "label": "POST refresh_endpoint (hwk + WebAuthn assertion)",
+      "method": "POST",
+      "url": "https://agent.example/refresh",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "Signature-Key": "sig=hwk;kty=\"OKP\";crv=\"Ed25519\";x=\"bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU\"",
+        "Signature": "sig=:bmV3X2VwaGVtZXJhbF9zaWduYXR1cmVfaGVyZQ==:",
+        "Content-Digest": "sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
+      },
+      "request_body": {
+        "attestation": {
+          "type": "webauthn",
+          "credential": {
+            "id": "Y3JlZGVudGlhbF9pZF9oZXJl",
+            "rawId": "Y3JlZGVudGlhbF9pZF9oZXJl",
+            "type": "public-key",
+            "response": {
+              "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiY21WbWNtVnpZWE5mWTJoaGJHeHZibUZzWDJKNWRHVnpmMmhsY21VIiwib3JpZ2luIjoiaHR0cHM6Ly9hZ2VudC5leGFtcGxlIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ",
+              "authenticatorData": "U0pZTjVZZ09qR2gwTkJjUFpIWmdXNF9rcnJtaWhqTEhtVnp6dW9NZGwyTUZBQUFBQUE",
+              "signature": "MEUCIQDX5TZuO_1pHNFXMfp9XRjPJbf19GWoiP_5s5ZhNHNAIgQE3kLLdwWfJU5tB1cEbBLpQCm7_mxN0EW_VoORijY",
+              "userHandle": "ZFhObGNsOXpkV0l4TWpNME5UWT0"
+            }
+          }
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "agent_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.cmVuZXdhbF93ZWJhcHBfc2lnbmF0dXJlX2hlcmU"
+      },
+      "tokens": [
+        {
+          "name": "Agent Token (renewed)",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.cmVuZXdhbF93ZWJhcHBfc2lnbmF0dXJlX2hlcmU",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "agent-server-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "jti": "renewal-token-234567",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+                "kid": "agent-key-2"
+              }
+            },
+            "iat": 1700086400,
+            "exp": 1700172800
+          },
+          "signature_b64": "cmVuZXdhbF93ZWJhcHBfc2lnbmF0dXJlX2hlcmU"
+        }
+      ],
+      "signature": {
+        "scheme": "hwk",
+        "signature_base": "\"@method\": POST\n\"@authority\": agent.example\n\"@path\": /refresh\n\"content-digest\": sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "signature_key": "sig=hwk;kty=\"OKP\";crv=\"Ed25519\";x=\"bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU\"",
+        "covered_components": ["@method", "@authority", "@path", "content-digest"]
+      },
+      "annotations": [
+        "The new ephemeral key signs the HTTP message via the hwk scheme (key inline in Signature-Key).",
+        "The WebAuthn assertion is in the request body under attestation.type=webauthn.",
+        "Agent server verifies: (1) HTTP sig with new ephemeral key from Signature-Key hwk, (2) WebAuthn assertion against the challenge it issued, (3) clientDataJSON.challenge matches a stored, unconsumed challenge.",
+        "Agent server looks up the binding by the credential rawId in the assertion.",
+        "On success, challenge is consumed (marked used) and a fresh aa-agent+jwt is issued.",
+        "The renewed token is bound to the NEW ephemeral key via cnf.jwk.",
+        "PS is never contacted — the agent server owns the device credential from bootstrap."
+      ]
+    }
+  ]
+}

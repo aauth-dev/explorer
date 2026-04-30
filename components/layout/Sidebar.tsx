@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Radio, Lock, FileText, Zap, Layers, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Radio, Lock, FileText, Zap, Layers, X, Key, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
   href: string;
-  badge?: string;
 }
 
 interface NavSection {
@@ -17,30 +16,34 @@ interface NavSection {
   icon: React.ElementType;
   color: string;
   items: NavItem[];
+  footerNote?: { label: string; href: string };
 }
 
-const NAV: NavSection[] = [
+type Tab = "protocol" | "signing" | "bootstrap";
+
+const TABS: { id: Tab; label: string; defaultHref: string }[] = [
+  { id: "protocol", label: "Protocol", defaultHref: "/" },
+  { id: "signing", label: "Signing", defaultHref: "/foundations/profile" },
+  { id: "bootstrap", label: "Bootstrap", defaultHref: "/bootstrap" },
+];
+
+function getActiveTab(pathname: string): Tab {
+  if (pathname.startsWith("/bootstrap")) return "bootstrap";
+  if (
+    pathname.startsWith("/foundations") ||
+    (pathname.startsWith("/signing") && !pathname.startsWith("/signing/agent-tokens"))
+  )
+    return "signing";
+  return "protocol";
+}
+
+const PROTOCOL_NAV: NavSection[] = [
   {
-    title: "Foundations",
-    icon: Layers,
-    color: "text-cyan-400",
-    items: [
-      { label: "HTTP Signatures Profile", href: "/foundations/profile" },
-      { label: "Signature-Key Schemes", href: "/foundations/schemes" },
-      { label: "Error Model", href: "/foundations/errors" },
-    ],
-  },
-  {
-    title: "Message Signing",
-    icon: Radio,
+    title: "Agent Identity",
+    icon: Key,
     color: "text-blue-400",
-    items: [
-      { label: "Pseudonymous (sig=hwk)", href: "/signing/pseudonymous" },
-      { label: "Hardware-backed (sig=jkt-jwt)", href: "/signing/hardware-backed" },
-      { label: "Agent Identity (sig=jwks_uri)", href: "/signing/identity" },
-      { label: "Agent Tokens (sig=jwt)", href: "/signing/agent-tokens" },
-      { label: "Compare Modes", href: "/signing/compare" },
-    ],
+    items: [{ label: "Agent Tokens (sig=jwt)", href: "/signing/agent-tokens" }],
+    footerNote: { label: "Full signing reference →", href: "/foundations/profile" },
   },
   {
     title: "Resource Access",
@@ -80,11 +83,75 @@ const NAV: NavSection[] = [
   },
 ];
 
-function SidebarSection({ section, defaultOpen }: { section: NavSection; defaultOpen: boolean }) {
+const SIGNING_NAV: NavSection[] = [
+  {
+    title: "Foundations",
+    icon: Layers,
+    color: "text-cyan-400",
+    items: [
+      { label: "HTTP Signatures Profile", href: "/foundations/profile" },
+      { label: "Signature-Key Schemes", href: "/foundations/schemes" },
+      { label: "Error Model", href: "/foundations/errors" },
+    ],
+  },
+  {
+    title: "Message Signing",
+    icon: Radio,
+    color: "text-blue-400",
+    items: [
+      { label: "Pseudonymous (sig=hwk)", href: "/signing/pseudonymous" },
+      { label: "Hardware-backed (sig=jkt-jwt)", href: "/signing/hardware-backed" },
+      { label: "Agent Identity (sig=jwks_uri)", href: "/signing/identity" },
+      { label: "Agent Tokens (sig=jwt)", href: "/signing/agent-tokens" },
+      { label: "Compare Modes", href: "/signing/compare" },
+    ],
+  },
+];
+
+const BOOTSTRAP_NAV: NavSection[] = [
+  {
+    title: "Bootstrap",
+    icon: GitBranch,
+    color: "text-violet-400",
+    items: [
+      { label: "Overview", href: "/bootstrap" },
+      { label: "Web App", href: "/bootstrap/web-app" },
+      { label: "Mobile (iOS)", href: "/bootstrap/ios" },
+      { label: "Mobile (Android)", href: "/bootstrap/android" },
+      { label: "Server / Workload", href: "/bootstrap/server-workload" },
+      { label: "Self-Hosted", href: "/bootstrap/self-hosted" },
+    ],
+  },
+  {
+    title: "Renewal",
+    icon: GitBranch,
+    color: "text-violet-400",
+    items: [
+      { label: "Mobile (jkt-jwt)", href: "/bootstrap/renewal-mobile" },
+      { label: "Web App (WebAuthn)", href: "/bootstrap/renewal-web-app" },
+    ],
+  },
+];
+
+const NAV_BY_TAB: Record<Tab, NavSection[]> = {
+  protocol: PROTOCOL_NAV,
+  signing: SIGNING_NAV,
+  bootstrap: BOOTSTRAP_NAV,
+};
+
+function SidebarSection({
+  section,
+  defaultOpen,
+}: {
+  section: NavSection;
+  defaultOpen: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(defaultOpen);
   const Icon = section.icon;
-  const isActive = section.items.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"));
+  const isActive = section.items.some(
+    (i) => pathname === i.href || pathname.startsWith(i.href + "/")
+  );
 
   return (
     <div className="mb-1">
@@ -123,6 +190,14 @@ function SidebarSection({ section, defaultOpen }: { section: NavSection; default
               </Link>
             );
           })}
+          {section.footerNote && (
+            <Link
+              href={section.footerNote.href}
+              className="flex items-center px-2.5 py-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              {section.footerNote.label}
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -131,25 +206,55 @@ function SidebarSection({ section, defaultOpen }: { section: NavSection; default
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const activeTab = getActiveTab(pathname);
+  const nav = NAV_BY_TAB[activeTab];
 
   return (
     <div className="flex h-full flex-col bg-sidebar border-r border-border">
       {onClose && (
         <div className="flex h-12 items-center justify-end px-2 border-b border-border shrink-0 lg:hidden">
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded" aria-label="Close sidebar">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground p-1 rounded"
+            aria-label="Close sidebar"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
+      {/* Tab switcher */}
+      <div className="px-3 pt-4 pb-2 shrink-0">
+        <div className="flex rounded-lg bg-muted p-0.5 gap-0.5">
+          {TABS.map((tab) => (
+            <Link
+              key={tab.id}
+              href={activeTab === tab.id ? pathname : tab.defaultHref}
+              className={cn(
+                "flex-1 rounded-md px-2 py-1.5 text-xs font-medium text-center transition-colors",
+                activeTab === tab.id
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3">
-        {NAV.map((section) => {
+      <nav className="flex-1 overflow-y-auto py-2 px-3">
+        {nav.map((section) => {
           const defaultOpen = section.items.some(
             (i) => pathname === i.href || pathname.startsWith(i.href + "/")
           );
           return (
-            <SidebarSection key={section.title} section={section} defaultOpen={defaultOpen || true} />
+            <SidebarSection
+              key={section.title}
+              section={section}
+              defaultOpen={defaultOpen || true}
+            />
           );
         })}
       </nav>

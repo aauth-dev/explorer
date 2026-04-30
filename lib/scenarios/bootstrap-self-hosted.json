@@ -1,0 +1,286 @@
+{
+  "id": "bootstrap-self-hosted",
+  "title": "Self-Hosted Bootstrap",
+  "description": "Agent and agent server co-located under a user-controlled domain. Self-issues agent tokens; PS binding is optional. No platform attestation required — the user controls the entire stack and can establish trust through other means (mTLS, domain ownership, etc.).",
+  "spec_section": "§ Bootstrap / Self-Hosted",
+  "category": "bootstrap",
+  "participants": [
+    {
+      "id": "user",
+      "label": "User",
+      "type": "user"
+    },
+    {
+      "id": "agent-server",
+      "label": "Agent + Agent Server",
+      "type": "agent"
+    },
+    {
+      "id": "ps",
+      "label": "Person Server",
+      "type": "person-server"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "user",
+      "to": "agent-server",
+      "label": "Deploy agent server",
+      "method": "DEPLOY",
+      "url": "https://agent.user-domain.example",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "tokens": [],
+      "annotations": [
+        "User deploys their own agent server under a domain they control.",
+        "The agent and agent server are co-located (same machine/container).",
+        "User configures the server with signing keys and metadata.",
+        "No platform attestation needed — the user controls the infrastructure."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent-server",
+      "to": "agent-server",
+      "label": "Generate signing key",
+      "method": "LOCAL",
+      "url": "Key generation",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "signing_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "c2VsZl9ob3N0ZWRfc2lnbmluZ19rZXlfcHVibGlj",
+          "kid": "self-hosted-key-1"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent server generates an Ed25519 signing key pair.",
+        "This key will be used for HTTP message signatures in protocol flows.",
+        "The private key is stored securely on the user's infrastructure.",
+        "The public key will be published at /.well-known/aauth-agent.json (JWKS endpoint)."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "agent-server",
+      "to": "agent-server",
+      "label": "Publish JWKS metadata",
+      "method": "LOCAL",
+      "url": "/.well-known/aauth-agent.json",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "issuer": "https://agent.user-domain.example",
+        "jwks_uri": "https://agent.user-domain.example/.well-known/jwks.json",
+        "token_endpoint": "https://agent.user-domain.example/token"
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent server publishes its metadata at /.well-known/aauth-agent.json.",
+        "This includes the JWKS endpoint where the public signing key can be fetched.",
+        "Resources and Person Servers can discover the agent's identity via this metadata.",
+        "The agent identifier is aauth:local@agent.user-domain.example."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "user",
+      "to": "ps",
+      "label": "Initiate PS binding (optional)",
+      "method": "GET",
+      "url": "https://ps.example/bootstrap?agent_server=https://agent.user-domain.example",
+      "request_headers": {
+        "Cookie": "ps_session=user_session_token"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "text/html"
+      },
+      "response_body": {
+        "html": "Bootstrap page for self-hosted agent"
+      },
+      "tokens": [],
+      "annotations": [
+        "User optionally binds their self-hosted agent to a Person Server.",
+        "PS binding enables federated access flows where the PS vouches for the agent.",
+        "For self-hosted agents, the PS may skip platform attestation.",
+        "Trust is established through domain ownership verification (e.g., DNS TXT record)."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "ps",
+      "to": "agent-server",
+      "label": "Verify domain ownership",
+      "method": "GET",
+      "url": "https://agent.user-domain.example/.well-known/aauth-agent.json",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "issuer": "https://agent.user-domain.example",
+        "jwks_uri": "https://agent.user-domain.example/.well-known/jwks.json",
+        "token_endpoint": "https://agent.user-domain.example/token"
+      },
+      "tokens": [],
+      "annotations": [
+        "PS fetches the agent's metadata to verify it's properly configured.",
+        "PS may also check DNS TXT records or require mTLS for additional trust.",
+        "Since the user controls the domain, platform attestation is not necessary.",
+        "The PS trusts the agent based on domain ownership and user authentication."
+      ]
+    },
+    {
+      "step": 6,
+      "from": "ps",
+      "to": "ps",
+      "label": "Record binding",
+      "method": "LOCAL",
+      "url": "Database: binding record",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "ps_url": "https://ps.example",
+        "user_sub": "user_sub_123456",
+        "agent_id": "aauth:local@agent.user-domain.example",
+        "agent_server": "https://agent.user-domain.example",
+        "binding_status": "established",
+        "trust_mechanism": "domain_ownership"
+      },
+      "tokens": [],
+      "annotations": [
+        "PS records the binding: (ps_url, user_sub) → aauth:local@agent.user-domain.example",
+        "No credential_id or jkt needed — the agent uses sig=jwks_uri signing.",
+        "The PS will accept agent tokens from this agent server in future flows.",
+        "The binding can be revoked by the user at any time via the PS UI."
+      ]
+    },
+    {
+      "step": 7,
+      "from": "ps",
+      "to": "agent-server",
+      "label": "Notify agent server of binding",
+      "method": "POST",
+      "url": "https://agent.user-domain.example/bootstrap/bind",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"ps-key-1\"",
+        "Signature-Key": "sig=jwks_uri;id=\"https://ps.example\";kid=\"ps-key-1\"",
+        "Signature": "sig=:cHNfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs:",
+        "Content-Digest": "sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
+      },
+      "request_body": {
+        "ps_url": "https://ps.example",
+        "user_sub": "user_sub_123456",
+        "agent_id": "aauth:local@agent.user-domain.example"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "status": "binding_acknowledged"
+      },
+      "tokens": [],
+      "signature": {
+        "scheme": "jwks_uri",
+        "signature_base": "\"@method\": POST\n\"@authority\": agent.user-domain.example\n\"@path\": /bootstrap/bind\n\"content-digest\": sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"ps-key-1\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"ps-key-1\"",
+        "signature_key": "sig=jwks_uri;id=\"https://ps.example\";kid=\"ps-key-1\"",
+        "covered_components": ["@method", "@authority", "@path", "content-digest"]
+      },
+      "annotations": [
+        "PS notifies the agent server that the binding has been established.",
+        "PS uses sig=jwks_uri to prove its identity to the agent server.",
+        "Agent server records which PS has authority over this agent identity.",
+        "This enables the agent server to issue tokens with ps and user_sub claims."
+      ]
+    },
+    {
+      "step": 8,
+      "from": "agent-server",
+      "to": "agent-server",
+      "label": "Self-issue agent token",
+      "method": "LOCAL",
+      "url": "Token issuance",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "agent_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LnVzZXItZG9tYWluLmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC51c2VyLWRvbWFpbi5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGU6ODAwMyIsInVzZXJfc3ViIjoidXNlcl9zdWJfMTIzNDU2IiwiZHdrIjoiLy53ZWxsLWtub3duL2FhdXRoLWFnZW50Lmpzb24iLCJqdGkiOiJzZWxmLWhvc3RlZC10b2tlbi0xMjM0NTYiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiYzJWc1psOW9iM04wWldSZmMybG5ibWx1WjE5clpYbGZjSFZpYkdsaiIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIn19LCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDg2NDAwMH0.c2VsZl9ob3N0ZWRfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs"
+      },
+      "tokens": [
+        {
+          "name": "Agent Token",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LnVzZXItZG9tYWluLmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC51c2VyLWRvbWFpbi5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGU6ODAwMyIsInVzZXJfc3ViIjoidXNlcl9zdWJfMTIzNDU2IiwiZHdrIjoiLy53ZWxsLWtub3duL2FhdXRoLWFnZW50Lmpzb24iLCJqdGkiOiJzZWxmLWhvc3RlZC10b2tlbi0xMjM0NTYiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiYzJWc1psOW9iM04wWldSZmMybG5ibWx1WjE5clpYbGZjSFZpYkdsaiIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIn19LCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDg2NDAwMH0.c2VsZl9ob3N0ZWRfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "self-hosted-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.user-domain.example",
+            "sub": "aauth:local@agent.user-domain.example",
+            "ps": "https://ps.example",
+            "dwk": "aauth-agent.json",
+            "jti": "self-hosted-token-123456",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "c2VsZl9ob3N0ZWRfc2lnbmluZ19rZXlfcHVibGlj",
+                "kid": "self-hosted-key-1"
+              }
+            },
+            "iat": 1700000000,
+            "exp": 1700864000
+          },
+          "signature_b64": "c2VsZl9ob3N0ZWRfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs"
+        }
+      ],
+      "annotations": [
+        "Agent server self-issues an aa-agent+jwt token.",
+        "The token is bound to the signing key via cnf.jwk (same key, not ephemeral).",
+        "The token includes ps claim (Person Server URL) when PS binding is established.",
+        "The dwk claim points to the agent's JWKS metadata endpoint.",
+        "The agent can now use this token in sig=jwt signing mode for protocol flows."
+      ]
+    },
+    {
+      "step": 9,
+      "from": "user",
+      "to": "agent-server",
+      "label": "Bootstrap complete",
+      "method": "DISPLAY",
+      "url": "Agent UI / CLI",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "message": "Self-hosted agent ready",
+        "agent_id": "aauth:local@agent.user-domain.example",
+        "ps_url": "https://ps.example",
+        "jwks_uri": "https://agent.user-domain.example/.well-known/jwks.json"
+      },
+      "tokens": [],
+      "annotations": [
+        "Bootstrap ceremony is complete.",
+        "The binding (ps_url, user_sub) → aauth:local@agent.user-domain.example is established (optional).",
+        "The agent can issue its own tokens without external attestation.",
+        "No renewal ceremony needed — tokens can be refreshed at any time by the agent server.",
+        "For agents without PS binding, the agent can still use sig=jwks_uri for identity-based access."
+      ]
+    }
+  ]
+}

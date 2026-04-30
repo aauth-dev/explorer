@@ -21,6 +21,7 @@ const CATEGORY_COLORS = {
   access: "text-green-400 bg-green-500/10",
   missions: "text-purple-400 bg-purple-500/10",
   advanced: "text-orange-400 bg-orange-500/10",
+  bootstrap: "text-violet-400 bg-violet-500/10",
 };
 
 const MIN_DETAILS_WIDTH_PX = 260;

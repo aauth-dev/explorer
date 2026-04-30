@@ -1,0 +1,180 @@
+{
+  "id": "bootstrap-renewal-mobile",
+  "title": "Token Renewal — Mobile (jkt-jwt)",
+  "description": "After an agent token expires, the mobile agent renews without re-involving the PS. The durable enclave key (Secure Enclave on iOS, StrongBox on Android) signs a jkt-jwt that chains to a newly generated ephemeral key. The agent server verifies the enclave signature, looks up the existing binding by key thumbprint, and issues a fresh agent token — no browser, no PS redirect.",
+  "spec_section": "§ Renewal / Mobile",
+  "category": "bootstrap",
+  "participants": [
+    {
+      "id": "agent",
+      "label": "Agent (Mobile)",
+      "type": "agent"
+    },
+    {
+      "id": "agent-server",
+      "label": "Agent Server",
+      "type": "agent"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "agent",
+      "label": "Generate new ephemeral key",
+      "method": "LOCAL",
+      "url": "KeyPairGenerator / SecKeyCreateRandomKey",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "new_ephemeral_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+          "kid": "agent-key-2"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent generates a fresh Ed25519 signing key pair in memory.",
+        "This new ephemeral key will replace the one bound in the expiring agent token.",
+        "The old ephemeral key is kept alive only until the new agent token is received."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "agent",
+      "label": "Enclave signs jkt-jwt binding new key",
+      "method": "LOCAL",
+      "url": "SecKeyCreateSignature / KeyStore.sign()",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "jkt_jwt": {
+          "header": {
+            "alg": "ES256",
+            "kid": "urn:jkt:sha-256:abc123enclavethumbprint",
+            "typ": "jkt+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "iat": 1700086400,
+            "exp": 1700090000,
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+                "kid": "agent-key-2"
+              }
+            }
+          },
+          "signature_b64": "ZW5jbGF2ZV9zaWduYXR1cmVfb3Zlcl9uZXdfZXBoZW1lcmFsX2tleQ"
+        }
+      },
+      "tokens": [
+        {
+          "name": "jkt-jwt",
+          "typ": "jkt+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjphYmMxMjNlbmNsYXZldGh1bWJwcmludCIsInR5cCI6ImprdCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDA5MDAwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.ZW5jbGF2ZV9zaWduYXR1cmVfb3Zlcl9uZXdfZXBoZW1lcmFsX2tleQ",
+          "header": {
+            "alg": "ES256",
+            "kid": "urn:jkt:sha-256:abc123enclavethumbprint",
+            "typ": "jkt+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "iat": 1700086400,
+            "exp": 1700090000,
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+                "kid": "agent-key-2"
+              }
+            }
+          },
+          "signature_b64": "ZW5jbGF2ZV9zaWduYXR1cmVfb3Zlcl9uZXdfZXBoZW1lcmFsX2tleQ"
+        }
+      ],
+      "annotations": [
+        "The durable enclave key (enrolled at bootstrap) signs a jkt-jwt.",
+        "The jkt-jwt payload contains cnf.jwk — the new ephemeral public key.",
+        "kid in the header is the enclave key thumbprint: urn:jkt:sha-256:<thumbprint>.",
+        "This chaining proves: whoever holds the enclave key authorizes this new ephemeral key.",
+        "No user interaction is required — the enclave signs autonomously."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "agent",
+      "to": "agent-server",
+      "label": "POST refresh_endpoint (empty body, jkt-jwt sig)",
+      "method": "POST",
+      "url": "https://agent.example/refresh",
+      "request_headers": {
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "Signature-Key": "sig=jkt-jwt;jwt=\"eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjphYmMxMjMiLCJ0eXAiOiJqa3Qrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDA5MDAwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.ZW5jbGF2ZV9zaWduYXR1cmU\"",
+        "Signature": "sig=:bmV3X2VwaGVtZXJhbF9rZXlfc2lnbmF0dXJlX2hlcmU:"
+      },
+      "request_body": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "agent_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19LCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDE3MjgwMH0.cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU"
+      },
+      "tokens": [
+        {
+          "name": "Agent Token (renewed)",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19LCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDE3MjgwMH0.cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "agent-server-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "jti": "renewal-token-234567",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "bmV3X2VwaGVtZXJhbF9rZXlfcHVibGljX2hlcmU",
+                "kid": "agent-key-2"
+              }
+            },
+            "iat": 1700086400,
+            "exp": 1700172800
+          },
+          "signature_b64": "cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU"
+        }
+      ],
+      "signature": {
+        "scheme": "jkt-jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": agent.example\n\"@path\": /refresh\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
+        "signature_key": "sig=jkt-jwt;jwt=\"<jkt-jwt-token>\"",
+        "covered_components": ["@method", "@authority", "@path"]
+      },
+      "annotations": [
+        "The new ephemeral key signs the HTTP message (standard RFC 9421 signature).",
+        "The Signature-Key header carries the jkt-jwt, linking the new ephemeral key back to the enclave.",
+        "Request body is EMPTY — the jkt-jwt signature is sufficient proof; no attestation ceremony needed.",
+        "Agent server verifies: (1) HTTP sig with new ephemeral key, (2) jkt-jwt signed by enclave key, (3) cnf.jwk in jkt-jwt matches the signing key.",
+        "Agent server derives enclave thumbprint from jkt-jwt header kid (urn:jkt:sha-256:...) and looks up the existing binding.",
+        "On success, agent server issues a fresh aa-agent+jwt bound to the NEW ephemeral key.",
+        "The (ps_url, user_sub) → aauth:local@domain binding is unchanged — only the ephemeral key rotates."
+      ]
+    }
+  ]
+}

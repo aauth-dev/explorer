@@ -1,0 +1,378 @@
+{
+  "id": "bootstrap-android",
+  "title": "Mobile (Android) Bootstrap",
+  "description": "Agent runs on Android with a StrongBox-backed key. The PS authenticates the user and issues a bootstrap_token; the agent obtains an attestation nonce from the agent server, generates a Play Integrity attestation, then POSTs to the agent server's bootstrap_endpoint using the jkt-jwt signature scheme. The agent server verifies the attestation, records the enclave key thumbprint as the device credential, and issues an agent token. The agent then announces its identity to the PS.",
+  "spec_section": "§ Bootstrap / Android",
+  "category": "bootstrap",
+  "participants": [
+    {
+      "id": "user",
+      "label": "User",
+      "type": "user"
+    },
+    {
+      "id": "agent",
+      "label": "Agent (Android App)",
+      "type": "agent"
+    },
+    {
+      "id": "agent-server",
+      "label": "Agent Server",
+      "type": "agent"
+    },
+    {
+      "id": "ps",
+      "label": "Person Server",
+      "type": "person-server"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "agent",
+      "label": "Generate StrongBox key + ephemeral key",
+      "method": "LOCAL",
+      "url": "Android Keystore (StrongBox) + local key gen",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "strongbox_key": {
+          "kty": "EC",
+          "crv": "P-256",
+          "x": "YW5kcm9pZF9zdHJvbmdib3hfa2V5X3hfY29vcmQ",
+          "y": "YW5kcm9pZF9zdHJvbmdib3hfa2V5X3lfY29vcmQ",
+          "kid": "urn:jkt:sha-256:8QfKjL9mN2pT5rU3vW7xY1zB4cD6eF8gH0iJ2kL4mN"
+        },
+        "ephemeral_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmluZ19rZXk",
+          "kid": "android-signing-key-1"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Android Keystore generates (or retrieves existing) P-256 key pair in StrongBox HSM — hardware-bound, unexportable.",
+        "Agent also generates an ephemeral Ed25519 signing key in memory for HTTP message signatures.",
+        "The StrongBox key has a stable JWK thumbprint: urn:jkt:sha-256:<thumbprint>.",
+        "Per spec: durable key lifetime is bounded by the application install (months to years).",
+        "Ephemeral key lifetime is bounded by the agent token (hours to a day)."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /bootstrap (hwk, agent_server)",
+      "method": "POST",
+      "url": "https://ps.example/bootstrap",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"android-signing-key-1\"",
+        "Signature-Key": "sig=hwk;kty=\"OKP\";crv=\"Ed25519\";x=\"YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmluZ19rZXk\"",
+        "Signature": "sig=:YW5kcm9pZF9hZ2VudF9zaWduYXR1cmVfb3Zlcl9wc19ib290c3RyYXA=:",
+        "Content-Digest": "sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
+      },
+      "request_body": {
+        "agent_server": "https://agent.example"
+      },
+      "response_status": 202,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Location": "https://ps.example/bootstrap/pending/android-def456",
+        "Retry-After": "0",
+        "Cache-Control": "no-store",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://ps.example/interaction\"; code=\"M3N4-P5Q6\""
+      },
+      "response_body": {
+        "status": "pending"
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent signs the PS request with hwk scheme using the ephemeral key (NOT the StrongBox key).",
+        "The hwk scheme is always used for the PS /bootstrap request, regardless of platform.",
+        "Body contains agent_server URL — identifies which agent server will mint the agent identity.",
+        "PS responds 202 with interaction URL — user must authenticate and consent.",
+        "Agent directs the user to the interaction URL (in-app browser, system browser, or intent)."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "user",
+      "to": "ps",
+      "label": "User authenticates and approves at PS",
+      "method": "GET",
+      "url": "https://ps.example/interaction?code=M3N4-P5Q6",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "text/html"
+      },
+      "response_body": {
+        "html": "PS consent screen — approve agent server binding"
+      },
+      "tokens": [],
+      "annotations": [
+        "User authenticates at the PS (existing account, biometrics, password, etc.).",
+        "PS displays a consent screen showing the agent server's display name and logo.",
+        "User approves allowing the agent server to establish an account bound to this user.",
+        "No identity claims are released — claims come later via the three-party flow."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "agent",
+      "to": "ps",
+      "label": "Agent polls PS — receives bootstrap_token",
+      "method": "GET",
+      "url": "https://ps.example/bootstrap/pending/android-def456",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store"
+      },
+      "response_body": {
+        "bootstrap_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtYm9vdHN0cmFwK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZSIsInN1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJZVzVrY205cFpGOWxjR2hsYldWeVlXeGZjMmxuYm1sdVoxOXJaWGsiLCJraWQiOiJhbmRyb2lkLXNpZ25pbmcta2V5LTEifX0sImp0aSI6ImFuZHJvaWQtYm9vdHN0cmFwLTEyMzQ1NiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAwfQ.cHNfc2lnbmF0dXJlX2FuZHJvaWQ"
+      },
+      "tokens": [
+        {
+          "name": "bootstrap_token",
+          "typ": "aa-bootstrap+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtYm9vdHN0cmFwK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYWdlbnQuZXhhbXBsZSIsInN1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJZVzVrY205cFpGOWxjR2hsYldWeVlXeGZjMmxuYm1sdVoxOXJaWGsiLCJraWQiOiJhbmRyb2lkLXNpZ25pbmcta2V5LTEifX0sImp0aSI6ImFuZHJvaWQtYm9vdHN0cmFwLTEyMzQ1NiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAwfQ.cHNfc2lnbmF0dXJlX2FuZHJvaWQ",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "ps-key-1",
+            "typ": "aa-bootstrap+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://agent.example",
+            "sub": "user_sub_123456",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmluZ19rZXk",
+                "kid": "android-signing-key-1"
+              }
+            },
+            "jti": "android-bootstrap-123456",
+            "iat": 1700000000,
+            "exp": 1700000300
+          },
+          "signature_b64": "cHNfc2lnbmF0dXJlX2FuZHJvaWQ"
+        }
+      ],
+      "annotations": [
+        "PS returns the bootstrap_token — a short-lived JWT (≤5 min) directed at the agent server.",
+        "bootstrap_token.cnf.jwk = the ephemeral key (matches the hwk key from step 2).",
+        "bootstrap_token.dwk = aauth-person.json — agent server uses this to discover PS JWKS.",
+        "No scope or identity claims — only binds user to ephemeral key."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "agent",
+      "to": "agent-server",
+      "label": "GET attestation nonce from agent server",
+      "method": "GET",
+      "url": "https://agent.example/attestation/nonce",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store"
+      },
+      "response_body": {
+        "nonce": "YXR0ZXN0YXRpb25fbm9uY2VfZm9yX3BsYXlfaW50ZWdyaXR5"
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent fetches a single-use nonce from the agent server for the Play Integrity ceremony.",
+        "This endpoint is non-normative (spec §mobile-nonce-example) — mirrors the webauthn_endpoint pattern.",
+        "The request is unsigned. Agent server stores the nonce as single-use, time-limited.",
+        "On Android, the nonce is supplied to the Play Integrity request and surfaced in requestDetails.nonce.",
+        "Implementations are free to use any transport that meets ceremony constraints."
+      ]
+    },
+    {
+      "step": 6,
+      "from": "agent",
+      "to": "agent",
+      "label": "Play Integrity + jkt-jwt creation",
+      "method": "LOCAL",
+      "url": "Play Integrity API + StrongBox signing",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "attestation": {
+          "type": "play-integrity",
+          "integrity_token": "eyJhbGciOiJSUzI1NiIsIng1YyI6WyJNSUlGN0RDQ0E5U2dBd0lCQWdJUkFQSHRHenBEOG..."
+        },
+        "jkt_jwt": "strongbox signs jkt-jwt binding ephemeral key"
+      },
+      "tokens": [
+        {
+          "name": "jkt-jwt",
+          "typ": "jkt+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1Njo4UWZLakw5bU4ycFQ1clUzdlc3eFkxekI0Y0Q2ZUY4Z0gwaUoya0w0bU4iLCJ0eXAiOiJqa3Qrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAxMDAsImV4cCI6MTcwMDAwMDQwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IllXNWtjbTlwWkY5bGNHaGxiV1Z5WVd4ZmMybG5ibWx1WjE5clpYayIsImtpZCI6ImFuZHJvaWQtc2lnbmluZy1rZXktMSJ9fX0.c3Ryb25nYm94X3NpZ25hdHVyZV9wbGF5X2ludGVncml0eQ",
+          "header": {
+            "alg": "ES256",
+            "kid": "urn:jkt:sha-256:8QfKjL9mN2pT5rU3vW7xY1zB4cD6eF8gH0iJ2kL4mN",
+            "typ": "jkt+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "iat": 1700000100,
+            "exp": 1700000400,
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmluZ19rZXk",
+                "kid": "android-signing-key-1"
+              }
+            }
+          },
+          "signature_b64": "c3Ryb25nYm94X3NpZ25hdHVyZV9wbGF5X2ludGVncml0eQ"
+        }
+      ],
+      "annotations": [
+        "Agent calls Play Integrity API to generate an integrity token using the nonce.",
+        "Integrity token proves: (1) genuine Play-protected device, (2) app integrity, (3) account binding.",
+        "On Android, the nonce is surfaced in requestDetails.nonce of the integrity verdict.",
+        "StrongBox then signs a jkt-jwt: header.kid = StrongBox thumbprint, payload.cnf.jwk = ephemeral key.",
+        "The jkt-jwt chains: StrongBox key → authorizes → ephemeral HTTP signing key."
+      ]
+    },
+    {
+      "step": 7,
+      "from": "agent",
+      "to": "agent-server",
+      "label": "POST bootstrap_endpoint (jkt-jwt + bootstrap_token + attestation)",
+      "method": "POST",
+      "url": "https://agent.example/bootstrap",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000100;alg=\"ed25519\";keyid=\"android-signing-key-1\"",
+        "Signature-Key": "sig=jkt-jwt;jwt=\"eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1Njo4UWZLakw5bU4ycFQ1clUzdlc3eFkxekI0Y0Q2ZUY4Z0gwaUoya0w0bU4iLCJ0eXAiOiJqa3Qrand0In0...\"",
+        "Signature": "sig=:YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmF0dXJlX292ZXJfYm9vdHN0cmFw:",
+        "Content-Digest": "sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
+      },
+      "request_body": {
+        "bootstrap_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtYm9vdHN0cmFwK2p3dCJ9...",
+        "attestation": {
+          "type": "play-integrity",
+          "integrity_token": "eyJhbGciOiJSUzI1NiIsIng1YyI6WyJNSUlGN0RDQ0E5U2dBd0lCQWdJUkFQSHRHenBEOG..."
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "agent_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwianRpIjoiYW5kcm9pZC1hZ2VudC10b2tlbi0xIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IllXNWtjbTlwWkY5bGNHaGxiV1Z5WVd4ZmMybG5ibWx1WjE5clpYayIsImtpZCI6ImFuZHJvaWQtc2lnbmluZy1rZXktMSJ9fSwiaWF0IjoxNzAwMDAwMTAwLCJleHAiOjE3MDAwODY1MDB9.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9hbmRyb2lk"
+      },
+      "tokens": [
+        {
+          "name": "Agent Token",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwianRpIjoiYW5kcm9pZC1hZ2VudC10b2tlbi0xIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IllXNWtjbTlwWkY5bGNHaGxiV1Z5WVd4ZmMybG5ibWx1WjE5clpYayIsImtpZCI6ImFuZHJvaWQtc2lnbmluZy1rZXktMSJ9fSwiaWF0IjoxNzAwMDAwMTAwLCJleHAiOjE3MDAwODY1MDB9.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9hbmRyb2lk",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "agent-server-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "jti": "android-agent-token-1",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "YW5kcm9pZF9lcGhlbWVyYWxfc2lnbmluZ19rZXk",
+                "kid": "android-signing-key-1"
+              }
+            },
+            "iat": 1700000100,
+            "exp": 1700086500
+          },
+          "signature_b64": "YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9hbmRyb2lk"
+        }
+      ],
+      "signature": {
+        "scheme": "jkt-jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": agent.example\n\"@path\": /bootstrap\n\"content-digest\": sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000100;alg=\"ed25519\";keyid=\"android-signing-key-1\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000100;alg=\"ed25519\";keyid=\"android-signing-key-1\"",
+        "signature_key": "sig=jkt-jwt;jwt=\"<jkt-jwt-token>\"",
+        "covered_components": ["@method", "@authority", "@path", "content-digest"]
+      },
+      "annotations": [
+        "Mobile clients use jkt-jwt scheme — the jkt-jwt header references the StrongBox key, cnf.jwk is the ephemeral key.",
+        "The ephemeral key signs the HTTP message; the jkt-jwt proves the StrongBox authorized it.",
+        "Body contains both the bootstrap_token (from PS) and the Play Integrity attestation.",
+        "Agent server verifies: (1) HTTP sig, (2) jkt-jwt StrongBox signature, (3) bootstrap_token via PS JWKS, (4) Play Integrity token against Google's verification API + nonce.",
+        "Agent server creates binding: (ps_url, user_sub) → aauth:local@agent.example.",
+        "Agent server stores urn:jkt:sha-256:<strongbox-thumbprint> as the device credential on the binding.",
+        "Issues aa-agent+jwt with dwk=aauth-agent.json bound to ephemeral key via cnf.jwk."
+      ]
+    },
+    {
+      "step": 8,
+      "from": "agent",
+      "to": "ps",
+      "label": "Announce agent identity to PS (jwt sig)",
+      "method": "POST",
+      "url": "https://ps.example/bootstrap",
+      "request_headers": {
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\");created=1700000200;alg=\"ed25519\";keyid=\"android-signing-key-1\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9...\"",
+        "Signature": "sig=:YW5kcm9pZF9hbm5vdW5jZW1lbnRfc2lnbmF0dXJl:",
+        "Content-Length": "0"
+      },
+      "request_body": {},
+      "response_status": 204,
+      "response_headers": {},
+      "response_body": {},
+      "tokens": [],
+      "annotations": [
+        "Agent announces its new identity to the PS using the jwt scheme with the agent_token.",
+        "PS verifies: agent_token via agent server JWKS, agent_token.ps = this PS, thumbprint lookup.",
+        "PS records the binding between aauth:local@agent.example and the (user, agent_server) tuple.",
+        "Agent MUST make this announcement before rotating its ephemeral key (before any refresh_endpoint call)."
+      ]
+    },
+    {
+      "step": 9,
+      "from": "agent",
+      "to": "user",
+      "label": "Bootstrap complete",
+      "method": "DISPLAY",
+      "url": "App UI",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "message": "Bootstrap successful",
+        "agent_id": "aauth:local@agent.example",
+        "ps_url": "https://ps.example",
+        "device_credential": "urn:jkt:sha-256:8QfKjL9mN2pT5rU3vW7xY1zB4cD6eF8gH0iJ2kL4mN"
+      },
+      "tokens": [],
+      "annotations": [
+        "Bootstrap ceremony is complete.",
+        "The binding (ps_url, user_sub) → aauth:local@agent.example is established at both PS and agent server.",
+        "The StrongBox key thumbprint (urn:jkt:sha-256:...) is stored as the device credential.",
+        "Future token renewals use the StrongBox key to sign jkt-jwt proofs at refresh_endpoint — no PS involved."
+      ]
+    }
+  ]
+}

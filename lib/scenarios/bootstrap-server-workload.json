@@ -1,0 +1,276 @@
+{
+  "id": "bootstrap-server-workload",
+  "title": "Server / Workload Bootstrap (SPIFFE)",
+  "description": "Agent runs as a server workload (container, VM, K8s pod). Uses SPIFFE/SPIRE for workload identity and mTLS. Per draft-hardt-aauth-bootstrap §Server workloads: there is no end user, so no PS interaction — the trust anchor is the platform attestation. The workload obtains X.509 and JWT SVIDs from SPIRE, presents them to the agent server, and receives an agent token with no ps claim.",
+  "spec_section": "§ Bootstrap / Server Workload",
+  "category": "bootstrap",
+  "participants": [
+    {
+      "id": "workload",
+      "label": "Workload",
+      "type": "agent"
+    },
+    {
+      "id": "spire",
+      "label": "SPIRE Server",
+      "type": "access-server"
+    },
+    {
+      "id": "agent-server",
+      "label": "Agent Server",
+      "type": "agent",
+      "port": 8001
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "workload",
+      "to": "workload",
+      "label": "Workload starts with SPIRE agent",
+      "method": "STARTUP",
+      "url": "Container initialization",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "tokens": [],
+      "annotations": [
+        "Server workload starts (K8s pod, container, VM) with SPIRE agent running as sidecar or on node.",
+        "Agent code runs as part of the workload — no user interaction.",
+        "Bootstrap is fully automated, triggered at workload startup.",
+        "Per spec (draft-hardt-aauth-bootstrap §Server workloads): no PS interaction for workloads."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "workload",
+      "to": "spire",
+      "label": "FetchX509SVID + FetchJWTSVID (gRPC)",
+      "method": "gRPC",
+      "url": "${SPIFFE_ENDPOINT_SOCKET} (unix socket)",
+      "request_headers": {},
+      "request_body": {
+        "_rpc_1": "workload.SpiffeWorkloadAPI/FetchX509SVID",
+        "_rpc_2": "workload.SpiffeWorkloadAPI/FetchJWTSVID",
+        "FetchJWTSVIDRequest": {
+          "audience": ["agent.example"],
+          "spiffe_id": ""
+        }
+      },
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "x509_svid": {
+          "spiffe_id": "spiffe://trust-domain.example/ns/production/sa/api-service",
+          "x509_svid": "<ASN.1 DER — cert chain, SPIFFE ID in SAN URI>",
+          "x509_svid_key": "<ASN.1 DER — PKCS#8 private key>",
+          "bundle": "<ASN.1 DER — trust bundle for trust-domain.example>"
+        },
+        "jwt_svid": {
+          "svid": "eyJhbGciOiJFUzI1NiIsImtpZCI6InNwaXJlLXNlcnZlci1rZXktMSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzcGlmZmU6Ly90cnVzdC1kb21haW4uZXhhbXBsZS9ucy9wcm9kdWN0aW9uL3NhL2FwaS1zZXJ2aWNlIiwiYXVkIjpbImFnZW50LmV4YW1wbGUiXSwiZXhwIjoxNzAwMDg2NDAwLCJpYXQiOjE3MDAwMDAwMDB9.c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA",
+          "spiffe_id": "spiffe://trust-domain.example/ns/production/sa/api-service",
+          "hint": "Kubernetes workload attested via service account token"
+        }
+      },
+      "tokens": [
+        {
+          "name": "SPIFFE JWT-SVID",
+          "typ": "JWT",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InNwaXJlLXNlcnZlci1rZXktMSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzcGlmZmU6Ly90cnVzdC1kb21haW4uZXhhbXBsZS9ucy9wcm9kdWN0aW9uL3NhL2FwaS1zZXJ2aWNlIiwiYXVkIjpbImFnZW50LmV4YW1wbGUiXSwiZXhwIjoxNzAwMDg2NDAwLCJpYXQiOjE3MDAwMDAwMDB9.c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA",
+          "header": {
+            "alg": "ES256",
+            "kid": "spire-server-key-1",
+            "typ": "JWT"
+          },
+          "payload": {
+            "sub": "spiffe://trust-domain.example/ns/production/sa/api-service",
+            "aud": ["agent.example"],
+            "exp": 1700086400,
+            "iat": 1700000000
+          },
+          "signature_b64": "c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA"
+        }
+      ],
+      "annotations": [
+        "The Workload API is gRPC over a Unix domain socket — NOT HTTP.",
+        "Socket path is resolved from env var SPIFFE_ENDPOINT_SOCKET (no spec-mandated default).",
+        "Two separate RPCs to SpiffeWorkloadAPI (defined in workloadapi.proto):",
+        "  FetchX509SVID — returns X.509 cert chain + PKCS#8 private key (ASN.1 DER encoded)",
+        "  FetchJWTSVID — takes audience[] + optional spiffe_id; returns signed JWT",
+        "SPIRE agent attests the caller using platform selectors (K8s SA, Unix UID, AWS tags).",
+        "X.509 SVID: SPIFFE ID is embedded in the certificate's SAN URI extension field.",
+        "JWT-SVID mandatory claims: sub (SPIFFE ID), aud (audience array), exp. iat is standard.",
+        "X.509 SVIDs are short-lived (hours) and streamed/auto-rotated by SPIRE via FetchX509SVID."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "workload",
+      "to": "workload",
+      "label": "Generate ephemeral signing key for AAuth",
+      "method": "LOCAL",
+      "url": "Key generation",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "signing_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "d29ya2xvYWRfc2lnbmluZ19rZXlfcHVibGlj",
+          "kid": "workload-aauth-key-1"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Workload generates an ephemeral Ed25519 signing key for AAuth HTTP signatures.",
+        "This is separate from the SPIFFE X.509 key — it is used for AAuth protocol flows.",
+        "The agent token will bind this key via cnf.jwk."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "workload",
+      "to": "agent-server",
+      "label": "Bootstrap over HTTPS with mTLS",
+      "method": "POST",
+      "url": "https://agent.example/bootstrap",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJFUzI1NiIsImtpZCI6InNwaXJlLXNlcnZlci1rZXktMSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzcGlmZmU6Ly90cnVzdC1kb21haW4uZXhhbXBsZS9ucy9wcm9kdWN0aW9uL3NhL2FwaS1zZXJ2aWNlIiwiYXVkIjpbImFnZW50LmV4YW1wbGUiXSwiZXhwIjoxNzAwMDg2NDAwLCJpYXQiOjE3MDAwMDAwMDB9.c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA",
+        "X-Client-Cert-SPIFFE-ID": "spiffe://trust-domain.example/ns/production/sa/api-service"
+      },
+      "request_body": {
+        "spiffe_id": "spiffe://trust-domain.example/ns/production/sa/api-service",
+        "signing_key": {
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "d29ya2xvYWRfc2lnbmluZ19rZXlfcHVibGlj",
+          "kid": "workload-aauth-key-1"
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "agent_id": "aauth:workload@agent.example",
+        "binding_status": "established"
+      },
+      "tokens": [
+        {
+          "name": "SPIFFE JWT-SVID",
+          "typ": "JWT",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InNwaXJlLXNlcnZlci1rZXktMSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzcGlmZmU6Ly90cnVzdC1kb21haW4uZXhhbXBsZS9ucy9wcm9kdWN0aW9uL3NhL2FwaS1zZXJ2aWNlIiwiYXVkIjpbImFnZW50LmV4YW1wbGUiXSwiZXhwIjoxNzAwMDg2NDAwLCJpYXQiOjE3MDAwMDAwMDB9.c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA",
+          "header": {
+            "alg": "ES256",
+            "kid": "spire-server-key-1",
+            "typ": "JWT"
+          },
+          "payload": {
+            "sub": "spiffe://trust-domain.example/ns/production/sa/api-service",
+            "aud": ["agent.example"],
+            "exp": 1700086400,
+            "iat": 1700000000
+          },
+          "signature_b64": "c3BpcmVfc2VydmVyX3NpZ25hdHVyZV9oZXJlX2Jhc2U2NHVybA"
+        }
+      ],
+      "annotations": [
+        "Connection is HTTPS. mTLS is optional but strongly recommended for workloads.",
+        "mTLS handshake: workload presents X.509 SVID; agent server verifies against SPIRE trust bundle.",
+        "Agent server reads SPIFFE ID from the client cert's SAN URI extension (not CN).",
+        "Workload also sends JWT-SVID in Authorization header — used when mTLS is not available.",
+        "JWT-SVID verification by agent server:",
+        "  GET https://trust-domain.example/.well-known/openid-configuration → jwks_uri",
+        "  GET <jwks_uri> → public keys keyed by kid; validates signature, exp, aud.",
+        "Agent server records binding: SPIFFE ID as workload identity. No PS involved.",
+        "mTLS: mutual authentication at transport. AAuth adds app-layer signing and authorization."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "agent-server",
+      "to": "workload",
+      "label": "Issue agent token (no ps claim)",
+      "method": "RESPONSE",
+      "url": "Agent token issuance",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "agent_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDp3b3JrbG9hZEBhZ2VudC5leGFtcGxlIiwiZHdrIjoiYWF1dGgtYWdlbnQuanNvbiIsIndvcmtsb2FkX3N1YiI6InNwaWZmZTovL3RydXN0LWRvbWFpbi5leGFtcGxlL25zL3Byb2R1Y3Rpb24vc2EvYXBpLXNlcnZpY2UiLCJqdGkiOiJ3b3JrbG9hZC1ib290c3RyYXAtdG9rZW4iLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiZDI5eWEyeHZZV1JmYzJsbmJtbHVaMTlyWlhsZmNIVmliR2xqIiwia2lkIjoid29ya2xvYWQtYWF1dGgta2V5LTEifX0sImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDg2NDAwfQ.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV93b3JrbG9hZA",
+        "token_type": "Bearer",
+        "expires_in": 86400
+      },
+      "tokens": [
+        {
+          "name": "Agent Token (SPIFFE Workload)",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDp3b3JrbG9hZEBhZ2VudC5leGFtcGxlIiwiZHdrIjoiYWF1dGgtYWdlbnQuanNvbiIsIndvcmtsb2FkX3N1YiI6InNwaWZmZTovL3RydXN0LWRvbWFpbi5leGFtcGxlL25zL3Byb2R1Y3Rpb24vc2EvYXBpLXNlcnZpY2UiLCJqdGkiOiJ3b3JrbG9hZC1ib290c3RyYXAtdG9rZW4iLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiZDI5eWEyeHZZV1JmYzJsbmJtbHVaMTlyWlhsZmNIVmliR2xqIiwia2lkIjoid29ya2xvYWQtYWF1dGgta2V5LTEifX0sImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDg2NDAwfQ.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV93b3JrbG9hZA",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "agent-server-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "sub": "aauth:workload@agent.example",
+            "dwk": "aauth-agent.json",
+            "workload_sub": "spiffe://trust-domain.example/ns/production/sa/api-service",
+            "jti": "workload-bootstrap-token",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "d29ya2xvYWRfc2lnbmluZ19rZXlfcHVibGlj",
+                "kid": "workload-aauth-key-1"
+              }
+            },
+            "iat": 1700000000,
+            "exp": 1700086400
+          },
+          "signature_b64": "YWdlbnRfc2VydmVyX3NpZ25hdHVyZV93b3JrbG9hZA"
+        }
+      ],
+      "annotations": [
+        "Agent server issues an aa-agent+jwt bound to the workload's ephemeral signing key.",
+        "iss MUST be a valid HTTPS URL with no port (spec §Server Identifiers: scheme+host only).",
+        "dwk is 'aauth-agent.json' — per spec, validators discover the JWKS via {iss}/.well-known/{dwk}.",
+        "No ps claim: spec (draft-hardt-aauth-bootstrap §Server workloads) explicitly states no PS interaction.",
+        "workload_sub is an extension claim: spec §Agent Tokens explicitly permits 'workload identity assertions'",
+        "  as additional claims (Agent servers MAY include additional claims; PSes MUST ignore unknown ones).",
+        "spiffe_id is intentionally omitted — workload_sub already carries the full SPIFFE ID URI.",
+        "This token has NO scope or resource claims — those come via the three-party flow."
+      ]
+    },
+    {
+      "step": 6,
+      "from": "workload",
+      "to": "workload",
+      "label": "Bootstrap complete, workload ready",
+      "method": "READY",
+      "url": "Service operational",
+      "request_headers": {},
+      "response_status": 200,
+      "response_headers": {},
+      "response_body": {
+        "status": "ready",
+        "agent_id": "aauth:workload@agent.example",
+        "spiffe_id": "spiffe://trust-domain.example/ns/production/sa/api-service"
+      },
+      "tokens": [],
+      "annotations": [
+        "Bootstrap complete — fully automated via SPIFFE/SPIRE, no PS involved.",
+        "Workload has TWO identity mechanisms:",
+        "  1. X.509 SVID for mTLS (transport security, mutual authentication)",
+        "  2. AAuth agent token for HTTP signatures (authorization, API-level identity)",
+        "All connections use HTTPS. mTLS is optional but strongly recommended for service mesh.",
+        "Token renewal uses fresh SPIFFE SVIDs from SPIRE (auto-rotated every few hours).",
+        "This pattern works with K8s, Istio, Consul, Envoy, and any SPIFFE-compliant platform."
+      ]
+    }
+  ]
+}
