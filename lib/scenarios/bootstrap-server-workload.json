@@ -18,8 +18,7 @@
     {
       "id": "agent-server",
       "label": "Agent Server",
-      "type": "agent",
-      "port": 8001
+      "type": "agent"
     }
   ],
   "steps": [
