@@ -262,7 +262,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Footer */}
       <div className="shrink-0 border-t border-border px-4 py-3">
         <a
-          href="https://github.com"
+          href="https://github.com/dickhardt/AAuth/blob/main/draft-hardt-oauth-aauth-protocol.md"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
