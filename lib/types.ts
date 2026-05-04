@@ -5,8 +5,7 @@ export type ParticipantType =
   | "resource"
   | "person-server"
   | "access-server"
-  | "user"
-  | "delegate";
+  | "user";
 
 export interface Participant {
   id: string;

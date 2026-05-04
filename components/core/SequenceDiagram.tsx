@@ -10,7 +10,6 @@ const PARTICIPANT_COLORS: Record<string, string> = {
   "person-server": "#c084fc", // purple-400
   "access-server": "#fb923c", // orange-400
   user: "#f87171",        // red-400
-  delegate: "#38bdf8",    // sky-400
 };
 
 const LANE_WIDTH = 140;

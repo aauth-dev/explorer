@@ -1,7 +1,7 @@
 {
   "id": "bootstrap-self-hosted",
   "title": "Self-Hosted Bootstrap",
-  "description": "Agent and agent server co-located under a user-controlled domain. Self-issues agent tokens; PS binding is optional. No platform attestation required — the user controls the entire stack and can establish trust through other means (mTLS, domain ownership, etc.).",
+  "description": "Agent and agent provider co-located under a user-controlled domain. Self-issues agent tokens; PS binding is optional. No platform attestation required — the user controls the entire stack and can establish trust through other means (mTLS, domain ownership, etc.).",
   "spec_section": "§ Bootstrap / Self-Hosted",
   "category": "bootstrap",
   "participants": [
@@ -11,8 +11,8 @@
       "type": "user"
     },
     {
-      "id": "agent-server",
-      "label": "Agent + Agent Server",
+      "id": "agent-provider",
+      "label": "Agent + Agent Provider",
       "type": "agent"
     },
     {
@@ -25,8 +25,8 @@
     {
       "step": 1,
       "from": "user",
-      "to": "agent-server",
-      "label": "Deploy agent server",
+      "to": "agent-provider",
+      "label": "Deploy agent provider",
       "method": "DEPLOY",
       "url": "https://agent.user-domain.example",
       "request_headers": {},
@@ -34,16 +34,16 @@
       "response_headers": {},
       "tokens": [],
       "annotations": [
-        "User deploys their own agent server under a domain they control.",
-        "The agent and agent server are co-located (same machine/container).",
+        "User deploys their own agent provider under a domain they control.",
+        "The agent and agent provider are co-located (same machine/container).",
         "User configures the server with signing keys and metadata.",
         "No platform attestation needed — the user controls the infrastructure."
       ]
     },
     {
       "step": 2,
-      "from": "agent-server",
-      "to": "agent-server",
+      "from": "agent-provider",
+      "to": "agent-provider",
       "label": "Generate signing key",
       "method": "LOCAL",
       "url": "Key generation",
@@ -60,7 +60,7 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent server generates an Ed25519 signing key pair.",
+        "Agent provider generates an Ed25519 signing key pair.",
         "This key will be used for HTTP message signatures in protocol flows.",
         "The private key is stored securely on the user's infrastructure.",
         "The public key will be published at /.well-known/aauth-agent.json (JWKS endpoint)."
@@ -68,8 +68,8 @@
     },
     {
       "step": 3,
-      "from": "agent-server",
-      "to": "agent-server",
+      "from": "agent-provider",
+      "to": "agent-provider",
       "label": "Publish JWKS metadata",
       "method": "LOCAL",
       "url": "/.well-known/aauth-agent.json",
@@ -83,7 +83,7 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent server publishes its metadata at /.well-known/aauth-agent.json.",
+        "Agent provider publishes its metadata at /.well-known/aauth-agent.json.",
         "This includes the JWKS endpoint where the public signing key can be fetched.",
         "Resources and Person Servers can discover the agent's identity via this metadata.",
         "The agent identifier is aauth:local@agent.user-domain.example."
@@ -95,7 +95,7 @@
       "to": "ps",
       "label": "Initiate PS binding (optional)",
       "method": "GET",
-      "url": "https://ps.example/bootstrap?agent_server=https://agent.user-domain.example",
+      "url": "https://ps.example/bootstrap?agent_provider=https://agent.user-domain.example",
       "request_headers": {
         "Cookie": "ps_session=user_session_token"
       },
@@ -117,7 +117,7 @@
     {
       "step": 5,
       "from": "ps",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "Verify domain ownership",
       "method": "GET",
       "url": "https://agent.user-domain.example/.well-known/aauth-agent.json",
@@ -153,7 +153,7 @@
         "ps_url": "https://ps.example",
         "user_sub": "user_sub_123456",
         "agent_id": "aauth:local@agent.user-domain.example",
-        "agent_server": "https://agent.user-domain.example",
+        "agent_provider": "https://agent.user-domain.example",
         "binding_status": "established",
         "trust_mechanism": "domain_ownership"
       },
@@ -161,15 +161,15 @@
       "annotations": [
         "PS records the binding: (ps_url, user_sub) → aauth:local@agent.user-domain.example",
         "No credential_id or jkt needed — the agent uses sig=jwks_uri signing.",
-        "The PS will accept agent tokens from this agent server in future flows.",
+        "The PS will accept agent tokens from this agent provider in future flows.",
         "The binding can be revoked by the user at any time via the PS UI."
       ]
     },
     {
       "step": 7,
       "from": "ps",
-      "to": "agent-server",
-      "label": "Notify agent server of binding",
+      "to": "agent-provider",
+      "label": "Notify agent provider of binding",
       "method": "POST",
       "url": "https://agent.user-domain.example/bootstrap/bind",
       "request_headers": {
@@ -200,16 +200,16 @@
         "covered_components": ["@method", "@authority", "@path", "content-digest"]
       },
       "annotations": [
-        "PS notifies the agent server that the binding has been established.",
-        "PS uses sig=jwks_uri to prove its identity to the agent server.",
-        "Agent server records which PS has authority over this agent identity.",
-        "This enables the agent server to issue tokens with ps and user_sub claims."
+        "PS notifies the agent provider that the binding has been established.",
+        "PS uses sig=jwks_uri to prove its identity to the agent provider.",
+        "Agent provider records which PS has authority over this agent identity.",
+        "This enables the agent provider to issue tokens with ps and user_sub claims."
       ]
     },
     {
       "step": 8,
-      "from": "agent-server",
-      "to": "agent-server",
+      "from": "agent-provider",
+      "to": "agent-provider",
       "label": "Self-issue agent token",
       "method": "LOCAL",
       "url": "Token issuance",
@@ -250,7 +250,7 @@
         }
       ],
       "annotations": [
-        "Agent server self-issues an aa-agent+jwt token.",
+        "Agent provider self-issues an aa-agent+jwt token.",
         "The token is bound to the signing key via cnf.jwk (same key, not ephemeral).",
         "The token includes ps claim (Person Server URL) when PS binding is established.",
         "The dwk claim points to the agent's JWKS metadata endpoint.",
@@ -260,7 +260,7 @@
     {
       "step": 9,
       "from": "user",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "Bootstrap complete",
       "method": "DISPLAY",
       "url": "Agent UI / CLI",
@@ -278,7 +278,7 @@
         "Bootstrap ceremony is complete.",
         "The binding (ps_url, user_sub) → aauth:local@agent.user-domain.example is established (optional).",
         "The agent can issue its own tokens without external attestation.",
-        "No renewal ceremony needed — tokens can be refreshed at any time by the agent server.",
+        "No renewal ceremony needed — tokens can be refreshed at any time by the agent provider.",
         "For agents without PS binding, the agent can still use sig=jwks_uri for identity-based access."
       ]
     }

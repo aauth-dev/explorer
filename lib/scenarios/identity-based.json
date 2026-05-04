@@ -1,7 +1,7 @@
 {
   "id": "identity-based",
   "title": "Identity-Based Access",
-  "description": "The simplest resource access mode. The agent signs the request with its agent token (sig=jwt), the resource verifies the signature by resolving the agent server's JWKS via the token's iss and dwk claims, and makes an access decision based on agent identity alone \u2014 no token exchange, no PS, no AS.",
+  "description": "The simplest resource access mode. The agent signs the request with its agent token (sig=jwt), the resource verifies the signature by resolving the agent provider's JWKS via the token's iss and dwk claims, and makes an access decision based on agent identity alone \u2014 no token exchange, no PS, no AS.",
   "spec_section": "\u00a7 Identity-Based Access",
   "category": "access",
   "demo_phase": null,

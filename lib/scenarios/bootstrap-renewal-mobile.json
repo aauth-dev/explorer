@@ -1,7 +1,7 @@
 {
   "id": "bootstrap-renewal-mobile",
   "title": "Token Renewal — Mobile (jkt-jwt)",
-  "description": "After an agent token expires, the mobile agent renews without re-involving the PS. The durable enclave key (Secure Enclave on iOS, StrongBox on Android) signs a jkt-jwt that chains to a newly generated ephemeral key. The agent server verifies the enclave signature, looks up the existing binding by key thumbprint, and issues a fresh agent token — no browser, no PS redirect.",
+  "description": "After an agent token expires, the mobile agent renews without re-involving the PS. The durable enclave key (Secure Enclave on iOS, StrongBox on Android) signs a jkt-jwt that chains to a newly generated ephemeral key. The agent provider verifies the enclave signature, looks up the existing binding by key thumbprint, and issues a fresh agent token — no browser, no PS redirect.",
   "spec_section": "§ Renewal / Mobile",
   "category": "bootstrap",
   "participants": [
@@ -11,8 +11,8 @@
       "type": "agent"
     },
     {
-      "id": "agent-server",
-      "label": "Agent Server",
+      "id": "agent-provider",
+      "label": "Agent Provider",
       "type": "agent"
     }
   ],
@@ -112,7 +112,7 @@
     {
       "step": 3,
       "from": "agent",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "POST refresh_endpoint (empty body, jkt-jwt sig)",
       "method": "POST",
       "url": "https://agent.example/refresh",
@@ -136,7 +136,7 @@
           "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19LCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDE3MjgwMH0.cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU",
           "header": {
             "alg": "EdDSA",
-            "kid": "agent-server-key-1",
+            "kid": "agent-provider-key-1",
             "typ": "aa-agent+jwt"
           },
           "payload": {
@@ -170,9 +170,9 @@
         "The new ephemeral key signs the HTTP message (standard RFC 9421 signature).",
         "The Signature-Key header carries the jkt-jwt, linking the new ephemeral key back to the enclave.",
         "Request body is EMPTY — the jkt-jwt signature is sufficient proof; no attestation ceremony needed.",
-        "Agent server verifies: (1) HTTP sig with new ephemeral key, (2) jkt-jwt signed by enclave key, (3) cnf.jwk in jkt-jwt matches the signing key.",
-        "Agent server derives enclave thumbprint from jkt-jwt header kid (urn:jkt:sha-256:...) and looks up the existing binding.",
-        "On success, agent server issues a fresh aa-agent+jwt bound to the NEW ephemeral key.",
+        "Agent provider verifies: (1) HTTP sig with new ephemeral key, (2) jkt-jwt signed by enclave key, (3) cnf.jwk in jkt-jwt matches the signing key.",
+        "Agent provider derives enclave thumbprint from jkt-jwt header kid (urn:jkt:sha-256:...) and looks up the existing binding.",
+        "On success, agent provider issues a fresh aa-agent+jwt bound to the NEW ephemeral key.",
         "The (ps_url, user_sub) → aauth:local@domain binding is unchanged — only the ephemeral key rotates."
       ]
     }

@@ -24,7 +24,6 @@ type Tab = "protocol" | "signing" | "bootstrap";
 const TABS: { id: Tab; label: string; defaultHref: string }[] = [
   { id: "protocol", label: "Protocol", defaultHref: "/" },
   { id: "signing", label: "Signing", defaultHref: "/foundations/profile" },
-  { id: "bootstrap", label: "Bootstrap", defaultHref: "/bootstrap" },
 ];
 
 function getActiveTab(pathname: string): Tab {

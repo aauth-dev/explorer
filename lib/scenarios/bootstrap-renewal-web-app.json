@@ -1,7 +1,7 @@
 {
   "id": "bootstrap-renewal-web-app",
   "title": "Token Renewal — Web App (WebAuthn)",
-  "description": "After an agent token expires, the browser agent renews without re-involving the PS. The agent fetches a fresh challenge from the agent server's webauthn_endpoint, invokes navigator.credentials.get() to produce a WebAuthn assertion (signed by the device credential enrolled at bootstrap), generates a new ephemeral signing key, and POSTs to refresh_endpoint. The agent server verifies the assertion, looks up the binding by credential rawId, and issues a fresh agent token.",
+  "description": "After an agent token expires, the browser agent renews without re-involving the PS. The agent fetches a fresh challenge from the agent provider's webauthn_endpoint, invokes navigator.credentials.get() to produce a WebAuthn assertion (signed by the device credential enrolled at bootstrap), generates a new ephemeral signing key, and POSTs to refresh_endpoint. The agent provider verifies the assertion, looks up the binding by credential rawId, and issues a fresh agent token.",
   "spec_section": "§ Renewal / Web App",
   "category": "bootstrap",
   "participants": [
@@ -16,8 +16,8 @@
       "type": "agent"
     },
     {
-      "id": "agent-server",
-      "label": "Agent Server",
+      "id": "agent-provider",
+      "label": "Agent Provider",
       "type": "agent"
     }
   ],
@@ -25,7 +25,7 @@
     {
       "step": 1,
       "from": "agent",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "Fetch WebAuthn assertion challenge",
       "method": "GET",
       "url": "https://agent.example/webauthn?type=get",
@@ -40,10 +40,10 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent fetches a single-use challenge from the agent server's webauthn_endpoint.",
+        "Agent fetches a single-use challenge from the agent provider's webauthn_endpoint.",
         "type=get signals this is a renewal (assertion), not a registration (create).",
         "The request is unsigned — the agent MUST NOT include user identifiers.",
-        "Agent server stores the challenge in a single-use, time-limited registry (expires ~5 minutes).",
+        "Agent provider stores the challenge in a single-use, time-limited registry (expires ~5 minutes).",
         "The challenge response contains ONLY the challenge — no user-identifying information."
       ]
     },
@@ -72,7 +72,7 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent calls navigator.credentials.get() with the challenge and the agent server's rpId.",
+        "Agent calls navigator.credentials.get() with the challenge and the agent provider's rpId.",
         "Uses a discoverable credential (no allowCredentials list) — the authenticator finds the enrolled credential.",
         "User verifies identity with their authenticator (Touch ID, Face ID, Windows Hello, etc.).",
         "The authenticator signs the challenge with the private key enrolled at bootstrap.",
@@ -107,7 +107,7 @@
     {
       "step": 4,
       "from": "agent",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "POST refresh_endpoint (hwk + WebAuthn assertion)",
       "method": "POST",
       "url": "https://agent.example/refresh",
@@ -148,7 +148,7 @@
           "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.cmVuZXdhbF93ZWJhcHBfc2lnbmF0dXJlX2hlcmU",
           "header": {
             "alg": "EdDSA",
-            "kid": "agent-server-key-1",
+            "kid": "agent-provider-key-1",
             "typ": "aa-agent+jwt"
           },
           "payload": {
@@ -181,11 +181,11 @@
       "annotations": [
         "The new ephemeral key signs the HTTP message via the hwk scheme (key inline in Signature-Key).",
         "The WebAuthn assertion is in the request body under attestation.type=webauthn.",
-        "Agent server verifies: (1) HTTP sig with new ephemeral key from Signature-Key hwk, (2) WebAuthn assertion against the challenge it issued, (3) clientDataJSON.challenge matches a stored, unconsumed challenge.",
-        "Agent server looks up the binding by the credential rawId in the assertion.",
+        "Agent provider verifies: (1) HTTP sig with new ephemeral key from Signature-Key hwk, (2) WebAuthn assertion against the challenge it issued, (3) clientDataJSON.challenge matches a stored, unconsumed challenge.",
+        "Agent provider looks up the binding by the credential rawId in the assertion.",
         "On success, challenge is consumed (marked used) and a fresh aa-agent+jwt is issued.",
         "The renewed token is bound to the NEW ephemeral key via cnf.jwk.",
-        "PS is never contacted — the agent server owns the device credential from bootstrap."
+        "PS is never contacted — the agent provider owns the device credential from bootstrap."
       ]
     }
   ]

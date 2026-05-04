@@ -4,7 +4,7 @@ import Link from "next/link";
 const BOOTSTRAP_PROFILES = [
   {
     title: "Web App",
-    desc: "Agent runs in the browser; agent server runs separately. Uses WebAuthn for device attestation at bootstrap and renewal.",
+    desc: "Agent runs in the browser; agent provider runs separately. Uses WebAuthn for device attestation at bootstrap and renewal.",
     href: "/bootstrap/web-app",
   },
   {
@@ -24,7 +24,7 @@ const BOOTSTRAP_PROFILES = [
   },
   {
     title: "Self-Hosted",
-    desc: "Agent and agent server co-located under a user-controlled domain. Self-issues agent tokens; PS binding is optional.",
+    desc: "Agent and agent provider co-located under a user-controlled domain. Self-issues agent tokens; PS binding is optional.",
     href: "/bootstrap/self-hosted",
   },
 ];
@@ -32,12 +32,12 @@ const BOOTSTRAP_PROFILES = [
 const RENEWAL_PROFILES = [
   {
     title: "Mobile Renewal (jkt-jwt)",
-    desc: "Token renewal without PS involvement. The durable enclave key signs a jkt-jwt chaining to a new ephemeral key. Agent server verifies by thumbprint — no user interaction, empty request body.",
+    desc: "Token renewal without PS involvement. The durable enclave key signs a jkt-jwt chaining to a new ephemeral key. Agent provider verifies by thumbprint — no user interaction, empty request body.",
     href: "/bootstrap/renewal-mobile",
   },
   {
     title: "Web App Renewal (WebAuthn)",
-    desc: "Token renewal without PS involvement. Agent fetches a fresh challenge, produces a WebAuthn assertion via navigator.credentials.get(), and POSTs with a new ephemeral key. Agent server verifies by credential rawId.",
+    desc: "Token renewal without PS involvement. Agent fetches a fresh challenge, produces a WebAuthn assertion via navigator.credentials.get(), and POSTs with a new ephemeral key. Agent provider verifies by credential rawId.",
     href: "/bootstrap/renewal-web-app",
   },
 ];
@@ -69,7 +69,7 @@ export default function BootstrapPage() {
           {[
             {
               label: "Identity binding",
-              desc: "The PS records which aauth:local@domain identity belongs to the user at this agent server.",
+              desc: "The PS records which aauth:local@domain identity belongs to the user at this agent provider.",
               color: "text-violet-400",
             },
             {
@@ -79,7 +79,7 @@ export default function BootstrapPage() {
             },
             {
               label: "Agent token",
-              desc: "The agent server issues an agent_token bound to an ephemeral signing key. No scope or identity claims — those come later via the standard three-party flow.",
+              desc: "The agent provider issues an agent_token bound to an ephemeral signing key. No scope or identity claims — those come later via the standard three-party flow.",
               color: "text-green-400",
             },
           ].map(({ label, desc, color }) => (

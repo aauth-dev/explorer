@@ -1,7 +1,7 @@
 {
   "id": "bootstrap-web-app",
   "title": "Web App Bootstrap",
-  "description": "Agent runs in the browser; agent server runs separately. The PS authenticates the user and issues a bootstrap_token; the agent server's webauthn_endpoint provides the WebAuthn challenge; the agent calls navigator.credentials.create() and POSTs the attestation to the agent server's bootstrap_endpoint, which creates the binding and issues the agent token. The agent then announces its new identity back to the PS.",
+  "description": "Agent runs in the browser; agent provider runs separately. The PS authenticates the user and issues a bootstrap_token; the agent provider's webauthn_endpoint provides the WebAuthn challenge; the agent calls navigator.credentials.create() and POSTs the attestation to the agent provider's bootstrap_endpoint, which creates the binding and issues the agent token. The agent then announces its new identity back to the PS.",
   "spec_section": "§ Bootstrap / Web App",
   "category": "bootstrap",
   "participants": [
@@ -16,8 +16,8 @@
       "type": "agent"
     },
     {
-      "id": "agent-server",
-      "label": "Agent Server",
+      "id": "agent-provider",
+      "label": "Agent Provider",
       "type": "agent"
     },
     {
@@ -57,7 +57,7 @@
       "step": 2,
       "from": "agent",
       "to": "ps",
-      "label": "POST /bootstrap (hwk, agent_server)",
+      "label": "POST /bootstrap (hwk, agent_provider)",
       "method": "POST",
       "url": "https://ps.example/bootstrap",
       "request_headers": {
@@ -68,7 +68,7 @@
         "Content-Digest": "sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY="
       },
       "request_body": {
-        "agent_server": "https://agent.example"
+        "agent_provider": "https://agent.example"
       },
       "response_status": 202,
       "response_headers": {
@@ -84,7 +84,7 @@
       "tokens": [],
       "annotations": [
         "Agent signs the request with the hwk scheme, embedding the ephemeral public key inline.",
-        "The body contains agent_server: the URL identifying which agent server will mint this agent's identity.",
+        "The body contains agent_provider: the URL identifying which agent provider will mint this agent's identity.",
         "PS responds 202 Accepted with an interaction requirement — the user must authenticate.",
         "The AAuth-Requirement header carries the interaction URL and a display code.",
         "Agent will direct the user to the interaction URL (browser redirect, QR code, or displayed code)."
@@ -105,13 +105,13 @@
         "Content-Type": "text/html"
       },
       "response_body": {
-        "html": "PS consent screen — approve agent server binding"
+        "html": "PS consent screen — approve agent provider binding"
       },
       "tokens": [],
       "annotations": [
         "User navigates to the PS interaction URL and authenticates (e.g., via existing session cookie).",
-        "PS displays a consent screen showing the agent server's display name and logo.",
-        "User approves allowing the agent server to establish an account bound to this user at the PS.",
+        "PS displays a consent screen showing the agent provider's display name and logo.",
+        "User approves allowing the agent provider to establish an account bound to this user at the PS.",
         "No identity claims are released here — claims flow through the three-party flow after bootstrap.",
         "On approval the PS prepares the bootstrap_token bound to the agent's ephemeral key thumbprint."
       ]
@@ -164,17 +164,17 @@
       ],
       "annotations": [
         "Agent polls the pending URL until the user completes the interaction.",
-        "On approval, PS returns the bootstrap_token — a short-lived JWT (≤5 min) directed at the agent server.",
-        "bootstrap_token.aud = agent server URL; bootstrap_token.sub = pairwise user identifier.",
+        "On approval, PS returns the bootstrap_token — a short-lived JWT (≤5 min) directed at the agent provider.",
+        "bootstrap_token.aud = agent provider URL; bootstrap_token.sub = pairwise user identifier.",
         "bootstrap_token.cnf.jwk = agent's ephemeral public key (matches the hwk key from step 2).",
-        "bootstrap_token.dwk = aauth-person.json — tells the agent server how to fetch the PS's JWKS.",
+        "bootstrap_token.dwk = aauth-person.json — tells the agent provider how to fetch the PS's JWKS.",
         "The bootstrap_token carries NO scope or identity claims — it only binds the user to the agent's ephemeral key."
       ]
     },
     {
       "step": 5,
       "from": "agent",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "GET webauthn_endpoint?type=create",
       "method": "GET",
       "url": "https://agent.example/webauthn?type=create",
@@ -188,7 +188,7 @@
         "challenge": "Y3JlYXRlX2NoYWxsZW5nZV9ieXRlc19oZXJl",
         "rp": {
           "id": "agent.example",
-          "name": "Agent Server"
+          "name": "Agent Provider"
         },
         "user": {
           "id": "dXNlcl9pZF9mb3Jfd2ViYXV0aG4",
@@ -206,11 +206,11 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent fetches a WebAuthn creation challenge from the agent server's webauthn_endpoint.",
+        "Agent fetches a WebAuthn creation challenge from the agent provider's webauthn_endpoint.",
         "type=create signals this is a registration (bootstrap), not an assertion (renewal).",
         "The request is unsigned — the agent MUST NOT include user identifiers.",
-        "Agent server stores the challenge as a single-use, time-limited nonce (expires ~5 minutes).",
-        "The RP ID is the agent server's host (agent.example) — this is the relying party for WebAuthn.",
+        "Agent provider stores the challenge as a single-use, time-limited nonce (expires ~5 minutes).",
+        "The RP ID is the agent provider's host (agent.example) — this is the relying party for WebAuthn.",
         "The response MUST NOT include user-identifying information at this stage."
       ]
     },
@@ -238,18 +238,18 @@
       },
       "tokens": [],
       "annotations": [
-        "Agent calls navigator.credentials.create() with the challenge and RP options from the agent server.",
+        "Agent calls navigator.credentials.create() with the challenge and RP options from the agent provider.",
         "User verifies identity with their platform authenticator (Touch ID, Face ID, Windows Hello, etc.).",
         "The authenticator generates a new credential key pair bound to agent.example as the RP.",
         "The credential private key is stored in the platform authenticator and never exported.",
         "The attestation object proves the credential was created on genuine platform hardware.",
-        "The credential ID (rawId) will be stored by the agent server as the device credential for future renewal."
+        "The credential ID (rawId) will be stored by the agent provider as the device credential for future renewal."
       ]
     },
     {
       "step": 7,
       "from": "agent",
-      "to": "agent-server",
+      "to": "agent-provider",
       "label": "POST bootstrap_endpoint (hwk + bootstrap_token + attestation)",
       "method": "POST",
       "url": "https://agent.example/bootstrap",
@@ -289,7 +289,7 @@
           "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwianRpIjoiYm9vdHN0cmFwLXRva2VuLWFnZW50LTEiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiWVd4cFkyVmZjMmxuYm1sdVoxOXJaWGxmY0hWaWJHbGpYMmxsY21VIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTcwMDAwMDEwMCwiZXhwIjoxNzAwMDg2NTAwfQ.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9vdmVyX2FnZW50X3Rva2Vu",
           "header": {
             "alg": "EdDSA",
-            "kid": "agent-server-key-1",
+            "kid": "agent-provider-key-1",
             "typ": "aa-agent+jwt"
           },
           "payload": {
@@ -320,13 +320,13 @@
         "covered_components": ["@method", "@authority", "@path", "content-digest"]
       },
       "annotations": [
-        "Agent sends the bootstrap_token (from PS) alongside the WebAuthn attestation to the agent server.",
+        "Agent sends the bootstrap_token (from PS) alongside the WebAuthn attestation to the agent provider.",
         "The hwk signature uses the same ephemeral key as the PS /bootstrap request.",
-        "Agent server verifies: (1) HTTP sig, (2) bootstrap_token signature via PS JWKS, (3) bootstrap_token.aud = this server, (4) bootstrap_token.cnf.jwk matches hwk key, (5) WebAuthn attestation against the stored challenge.",
-        "Agent server creates the binding: (ps_url=ps.example, user_sub=user_sub_123456) → aauth:local@agent.example.",
-        "Agent server stores the WebAuthn credential rawId as the device credential on the binding.",
-        "Agent server issues an aa-agent+jwt bound to the ephemeral key via cnf.jwk.",
-        "The agent_token includes dwk=aauth-agent.json so verifiers know how to fetch the agent server's JWKS."
+        "Agent provider verifies: (1) HTTP sig, (2) bootstrap_token signature via PS JWKS, (3) bootstrap_token.aud = this server, (4) bootstrap_token.cnf.jwk matches hwk key, (5) WebAuthn attestation against the stored challenge.",
+        "Agent provider creates the binding: (ps_url=ps.example, user_sub=user_sub_123456) → aauth:local@agent.example.",
+        "Agent provider stores the WebAuthn credential rawId as the device credential on the binding.",
+        "Agent provider issues an aa-agent+jwt bound to the ephemeral key via cnf.jwk.",
+        "The agent_token includes dwk=aauth-agent.json so verifiers know how to fetch the agent provider's JWKS."
       ]
     },
     {
@@ -350,11 +350,11 @@
       "annotations": [
         "Agent announces its new aauth:local@agent.example identity to the PS using the jwt scheme.",
         "The Signature-Key carries the agent_token as the naming JWT; the ephemeral key signs the HTTP message.",
-        "PS verifies: (1) HTTP sig, (2) agent_token via agent server JWKS, (3) agent_token.ps = this PS.",
+        "PS verifies: (1) HTTP sig, (2) agent_token via agent provider JWKS, (3) agent_token.ps = this PS.",
         "PS looks up the bootstrap record by thumbprint of agent_token.cnf.jwk and records the binding.",
         "PS responds 204 No Content — bootstrap record is now linked to the aauth:local@domain identity.",
         "Agent MUST make this announcement before rotating its ephemeral key (before any refresh_endpoint call).",
-        "The binding (ps_url, user_sub) → aauth:local@agent.example is now established at both PS and agent server."
+        "The binding (ps_url, user_sub) → aauth:local@agent.example is now established at both PS and agent provider."
       ]
     },
     {
@@ -376,10 +376,10 @@
       "tokens": [],
       "annotations": [
         "Bootstrap ceremony is complete.",
-        "The binding (ps_url, user_sub) → aauth:local@agent.example is established at both PS and agent server.",
+        "The binding (ps_url, user_sub) → aauth:local@agent.example is established at both PS and agent provider.",
         "The agent holds an agent_token for use in protocol flows (sig=jwt signing mode).",
         "The WebAuthn credential_id is stored for future renewal flows.",
-        "Future token renewals use the enrolled WebAuthn credential at the agent server's refresh_endpoint — no PS involved."
+        "Future token renewals use the enrolled WebAuthn credential at the agent provider's refresh_endpoint — no PS involved."
       ]
     }
   ]
