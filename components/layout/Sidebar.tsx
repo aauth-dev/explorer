@@ -81,7 +81,7 @@ const PROTOCOL_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Rich Resource Requests (R3)",
+    title: "Rich Resource Requests (R3) — experimental",
     icon: Database,
     color: "text-teal-400",
     items: [
