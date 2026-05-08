@@ -25,6 +25,10 @@ const CLAIM_TOOLTIPS: Record<string, string> = {
   s256: "SHA-256 hash of the mission blob — immutable mission fingerprint",
   act: "Authorized actor chain — records delegation/call-chaining path",
   resource: "Resource identifier this token grants access to",
+  r3_uri: "URI of the R3 document defining the authorized operations for this token",
+  r3_s256: "SHA-256 hash of the R3 document (base64url). Content-addressed — enables immutable audit trail and infinite AS caching.",
+  r3_granted: "Operations fully authorized by the AS. Resource serves these immediately without calling back to the AS.",
+  r3_conditional: "Operations authorized in principle but requiring per-call approval. Resource challenges with the actual call parameters before serving.",
 };
 
 function ClaimTooltip({ name }: { name: string }) {

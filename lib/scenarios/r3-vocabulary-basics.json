@@ -1,0 +1,412 @@
+{
+  "id": "r3-vocabulary-basics",
+  "title": "Vocabulary-Based Access",
+  "description": "An agent discovers a resource's MCP vocabulary and declares the exact tools it needs. The resource maps declared operations to an R3 document — a signed, content-addressed authorization definition — and returns a resource token carrying the document's URI and SHA-256 hash. The agent sends this to its Person Server (PS), which federates with the AS. The AS fetches and verifies the R3 document, then issues an auth token with r3_granted. The resource enforces access directly from the token with no introspection call.",
+  "spec_section": "R3 §4–6",
+  "category": "r3",
+  "participants": [
+    { "id": "agent", "label": "Agent", "type": "agent" },
+    { "id": "resource", "label": "Calendar Resource", "type": "resource" },
+    { "id": "ps", "label": "Person Server", "type": "person-server" },
+    { "id": "as", "label": "Auth Server", "type": "access-server" }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "resource",
+      "label": "GET /.well-known/aauth-resource.json → r3_vocabularies",
+      "method": "GET",
+      "url": "https://calendar.example.com/.well-known/aauth-resource.json",
+      "request_headers": {
+        "Host": "calendar.example.com"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "max-age=3600"
+      },
+      "response_body": {
+        "resource": "https://calendar.example.com",
+        "authorization_endpoint": "https://calendar.example.com/authorize",
+        "as": "https://as.example.com",
+        "r3_vocabularies": {
+          "urn:aauth:vocabulary:mcp": "https://calendar.example.com/mcp",
+          "urn:aauth:vocabulary:openapi": "https://calendar.example.com/openapi.json"
+        }
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent fetches well-known metadata to discover which vocabularies the resource supports.",
+        "r3_vocabularies maps vocabulary URIs to discovery endpoints — the MCP server URL, OpenAPI spec URL, etc.",
+        "Instead of guessing at scope strings, the agent can now declare the exact operation names the resource itself uses.",
+        "The resource advertises two vocabularies here. The agent will use MCP since it's interacting via an MCP server."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "resource",
+      "label": "POST /authorize + r3_operations → resource token (r3_uri + r3_s256)",
+      "method": "POST",
+      "url": "https://calendar.example.com/authorize",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824000;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:R3VvY2FidWxhcnlCYXNlZEF1dGhTaWduYXR1cmVFeGFtcGxlQmFzZTY0VVJMZm9yRGlzcGxheQ==:"
+      },
+      "request_body": {
+        "r3_operations": {
+          "vocabulary": "urn:aauth:vocabulary:mcp",
+          "operations": [
+            { "tool": "list_calendar_events" },
+            { "tool": "create_calendar_event" }
+          ]
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.placeholder"
+      },
+      "tokens": [
+        {
+          "name": "Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-1",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-7f2a1c",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "iat": 1741824000,
+            "exp": 1741824300
+          },
+          "signature_b64": "MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig"
+        }
+      ],
+      "annotations": [
+        "Agent declares r3_operations: the vocabulary it's using (MCP) and the exact tool names it needs.",
+        "Resource maps the requested tools to an R3 document and signs r3_uri + r3_s256 into the resource token.",
+        "r3_uri points to the R3 document. r3_s256 is its SHA-256 hash — the document's content-addressed identity.",
+        "aud=AS URL in the resource token signals a 4-party flow: the agent's PS must federate with that AS.",
+        "KEY: The agent receives a signed token but cannot fetch the R3 document. The resource only serves it to the AS (see step 5). The agent carries the hash of a document it cannot read — this is 'agent opacity'."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /token + resource token → PS (aud=AS, PS will federate)",
+      "method": "POST",
+      "url": "https://ps.example/token",
+      "request_headers": {
+        "Host": "ps.example",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824001;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:QWdlbnRUb1BTVm9jYWJ1bGFyeUJhc2ljc0Jhc2U2ND==:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-1",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-7f2a1c",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "iat": 1741824000,
+            "exp": 1741824300
+          },
+          "signature_b64": "MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig"
+        }
+      ],
+      "annotations": [
+        "Agent sends the resource token to its Person Server (PS URL from the ps claim in the agent token).",
+        "PS reads the resource token's aud claim: aud=AS URL → PS must federate with that AS on the agent's behalf.",
+        "The agent never contacts the AS directly — the PS is always its entry point for token requests.",
+        "PS will forward the resource token to the AS (step 4), wait for the auth token, then return it here."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "ps",
+      "to": "as",
+      "label": "PS federates: POST /token + resource token → AS processes R3 claims",
+      "method": "POST",
+      "url": "https://as.example.com/token",
+      "request_headers": {
+        "Host": "as.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824002;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwks_uri;jwks_uri=\"https://ps.example/.well-known/jwks.json\"",
+        "Signature": "sig=:UFNGZWRlcmF0ZXNUb0FTUjNWb2NhYnVsYXJ5QmFzaWNzQmFzZTY0:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-1",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-7f2a1c",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "iat": 1741824000,
+            "exp": 1741824300
+          },
+          "signature_b64": "MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig"
+        }
+      ],
+      "annotations": [
+        "PS authenticates itself to the AS using its own HTTP Message Signature (sig=jwks_uri).",
+        "AS receives the resource token: iss=resource, aud=AS URL, r3_uri, r3_s256.",
+        "Before issuing the auth token, AS fetches the R3 document (step 5) to verify the hash and evaluate policy.",
+        "This PS→AS exchange is internal to the federation — the agent does not see it."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "as",
+      "to": "resource",
+      "label": "GET /r3/a1b2c3d4 (AS fetches R3 doc, verifies SHA-256) → 200",
+      "method": "GET",
+      "url": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\");created=1741824002;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwks_uri;jwks_uri=\"https://as.example.com/.well-known/jwks.json\"",
+        "Signature": "sig=:QVNGZXRjaGVzUjNEb2NTSEVNQXV0aGVudGljYXRlZFdpdGhJdHNPd25LZXk=:"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "immutable"
+      },
+      "response_body": {
+        "version": "1",
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          { "tool": "list_calendar_events" },
+          { "tool": "create_calendar_event" }
+        ],
+        "display": {
+          "summary": "List and create events on your work calendar",
+          "implications": "New calendar events can be created on behalf of the user. Existing events cannot be modified by these tools.",
+          "data_accessed": "Event titles, times, attendees, and descriptions in the work calendar",
+          "irreversible": "Sent meeting invitations cannot be unsent"
+        }
+      },
+      "tokens": [],
+      "r3_document": {
+        "version": "1",
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          { "tool": "list_calendar_events" },
+          { "tool": "create_calendar_event" }
+        ],
+        "display": {
+          "summary": "List and create events on your work calendar",
+          "implications": "New calendar events can be created on behalf of the user. Existing events cannot be modified by these tools.",
+          "data_accessed": "Event titles, times, attendees, and descriptions in the work calendar",
+          "irreversible": "Sent meeting invitations cannot be unsent"
+        }
+      },
+      "annotations": [
+        "The AS authenticates itself to the resource using its own HTTP Message Signature. Agents cannot fetch this endpoint.",
+        "Resource returns the R3 document. AS computes SHA-256 of the canonical JSON and compares to r3_s256 from the resource token.",
+        "Hash mismatch → reject. Only if the hashes match does the AS proceed to policy evaluation.",
+        "Cache-Control: immutable — the document at this URI never changes (the URI is content-addressed by hash). The AS can cache it forever.",
+        "The display section shows what the resource itself will do: summary for consent UIs, irreversible for user warnings."
+      ]
+    },
+    {
+      "step": 6,
+      "from": "ps",
+      "to": "agent",
+      "label": "200 auth token (r3_granted for both tools) returned to agent",
+      "method": "RESPONSE",
+      "url": "https://ps.example/token (response)",
+      "request_headers": {},
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtaXNzdWVyLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtM2Q4YjJhIiwiYWdlbnQiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwic3ViIjoidXNlcjphbGljZUBleGFtcGxlLmNvbSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvYTFiMmMzZDRlNWY2Nzg5MCIsInIzX3MyNTYiOiJaektsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5QWJDZEVEZY5IaUpLbE1uIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn0seyJ0b29sIjoiY3JlYXRlX2NhbGVuZGFyX2V2ZW50In1dfSwiaWF0IjoxNzQxODI0MDAzLCJleHAiOjE3NDE4MjQ5MDN9.placeholder",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Auth Token",
+          "typ": "auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtaXNzdWVyLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtM2Q4YjJhIiwiYWdlbnQiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwic3ViIjoidXNlcjphbGljZUBleGFtcGxlLmNvbSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvYTFiMmMzZDRlNWY2Nzg5MCIsInIzX3MyNTYiOiJaektsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5QWJDZEVEZY5IaUpLbE1uIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn0seyJ0b29sIjoiY3JlYXRlX2NhbGVuZGFyX2V2ZW50In1dfSwiaWF0IjoxNzQxODI0MDAzLCJleHAiOjE3NDE4MjQ5MDN9.MEYCIQDauthtoken_signature_display_only",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-issuer.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-3d8b2a",
+            "agent": "aauth:local@agent.example",
+            "sub": "user:alice@example.com",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "list_calendar_events" },
+                { "tool": "create_calendar_event" }
+              ]
+            },
+            "iat": 1741824003,
+            "exp": 1741824903
+          },
+          "signature_b64": "MEYCIQDauth_token_signature_for_display_purposes_not_a_real_sig_value"
+        }
+      ],
+      "is_response": true,
+      "annotations": [
+        "PS returns the AS-issued auth token to the agent. The auth token's iss=AS (not PS), aud=resource.",
+        "r3_granted carries the exact operations using the same vocabulary format the resource natively understands.",
+        "r3_uri and r3_s256 are included in the auth token as a permanent audit record — the exact R3 document in effect at approval time.",
+        "The resource can now enforce access from r3_granted without calling back to the AS. No introspection needed."
+      ]
+    },
+    {
+      "step": 7,
+      "from": "agent",
+      "to": "resource",
+      "label": "POST /mcp/tools/call (create_calendar_event) → 200 served from r3_granted",
+      "method": "POST",
+      "url": "https://calendar.example.com/mcp/tools/call",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Authorization": "DPoP eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\");created=1741824010;alg=\"ed25519\"",
+        "Signature": "sig=:QWdlbnRTaWduZWRNQ1BDYWxsV2l0aEF1dGhUb2tlbkJhc2U2NA==:"
+      },
+      "request_body": {
+        "name": "create_calendar_event",
+        "arguments": {
+          "title": "Q2 Planning",
+          "start": "2026-05-10T14:00:00Z",
+          "end": "2026-05-10T15:00:00Z",
+          "attendees": ["alice@example.com", "bob@example.com"]
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Event created: Q2 Planning on 2026-05-10 14:00–15:00 UTC. Invitations sent to alice@example.com and bob@example.com."
+          }
+        ]
+      },
+      "tokens": [],
+      "annotations": [
+        "Resource verifies the auth token signature via the AS's JWKS (at dwk path aauth-issuer.json).",
+        "Tool name 'create_calendar_event' matches an operation in r3_granted — served immediately with no AS call.",
+        "Resource enforces authorization from vocabulary-based claims it already understands. Zero round-trips to the AS.",
+        "r3_uri + r3_s256 in the auth token form a permanent, verifiable audit record of exactly which R3 document was approved."
+      ]
+    }
+  ],
+  "token_flow": [
+    {
+      "token": "resource_token",
+      "label": "Resource Token",
+      "tokenType": "resource+jwt",
+      "accent": "resource",
+      "events": [
+        { "step": 2, "participant": "resource", "label": "Issued with r3_uri + r3_s256", "kind": "issued" },
+        { "step": 3, "participant": "agent", "label": "Forwarded to Person Server", "kind": "forwarded" },
+        { "step": 4, "participant": "ps", "label": "PS presents to Auth Server", "kind": "presented" }
+      ]
+    },
+    {
+      "token": "auth_token",
+      "label": "Auth Token",
+      "tokenType": "auth+jwt",
+      "accent": "auth",
+      "events": [
+        { "step": 4, "participant": "as", "label": "Issued with r3_granted (after R3 verify)", "kind": "issued" },
+        { "step": 6, "participant": "ps", "label": "Returned to agent via PS", "kind": "returned" },
+        { "step": 7, "participant": "agent", "label": "Presented to resource", "kind": "presented" }
+      ]
+    }
+  ]
+}

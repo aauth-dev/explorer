@@ -1,0 +1,311 @@
+{
+  "id": "r3-content-addressing",
+  "title": "Content Addressing & User Consent",
+  "description": "The R3 document's display section drives informed user consent — the resource describes what IT does, including irreversible actions. The agent's Person Server (PS) fetches the R3 document and presents it to the user before approving. The r3_s256 hash baked into the final auth token creates a permanent, content-addressed audit record: even if the resource later updates the document at the same URI, the approved semantics are pinned forever.",
+  "spec_section": "R3 §5 — R3 Document, §6 — Auth Token Extensions",
+  "category": "r3",
+  "participants": [
+    { "id": "agent", "label": "Agent", "type": "agent" },
+    { "id": "resource", "label": "Calendar Resource", "type": "resource" },
+    { "id": "ps", "label": "Person Server", "type": "person-server" },
+    { "id": "user", "label": "User", "type": "user" }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "resource",
+      "label": "POST /authorize + r3_operations → resource token (r3_uri + r3_s256)",
+      "method": "POST",
+      "url": "https://calendar.example.com/authorize",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741825000;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:Q29udGVudEFkZHJlc3NpbmdBdXRob3JpemVTaWduYXR1cmVCYXNlNjQ=:"
+      },
+      "request_body": {
+        "r3_operations": {
+          "vocabulary": "urn:aauth:vocabulary:mcp",
+          "operations": [
+            { "tool": "create_calendar_event" },
+            { "tool": "send_calendar_invite" }
+          ]
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6InJ0LWNhLTg5MGEiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNTAwMCwiZXhwIjoxNzQxODI1MzAwfQ.placeholder"
+      },
+      "tokens": [
+        {
+          "name": "Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6InJ0LWNhLTg5MGEiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNTAwMCwiZXhwIjoxNzQxODI1MzAwfQ.MEYCIQDcontent_addr_resource_token_display_only",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-1",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://ps.example",
+            "jti": "rt-ca-890a",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "iat": 1741825000,
+            "exp": 1741825300
+          },
+          "signature_b64": "MEYCIQDcontent_addressing_resource_token_display_only"
+        }
+      ],
+      "annotations": [
+        "Agent requests two MCP tools: create_calendar_event and send_calendar_invite.",
+        "Resource maps these to an R3 document. This R3 document has a display.irreversible field — sent invitations cannot be recalled.",
+        "The resource token carries r3_uri (where the doc lives) and r3_s256 (SHA-256 of its content).",
+        "aud=PS URL in the resource token — this is a 3-party flow. The PS is the token authority and will handle consent.",
+        "The agent cannot read the R3 document. It only carries the hash — 'agent opacity'."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /token + resource token → 202 deferred (user consent required)",
+      "method": "POST",
+      "url": "https://ps.example/token",
+      "request_headers": {
+        "Host": "ps.example",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741825001;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:RGVmZXJyZWRDb25zZW50UmVxdWVzdFNpZ25hdHVyZUJhc2U2NA==:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 202,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Location": "https://ps.example/pending/d4e5f6a7b8c9",
+        "Retry-After": "2",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://ps.example/consent?req=d4e5f6a7b8c9\"; code=\"D4E5-F6A7\""
+      },
+      "response_body": {
+        "status": "pending",
+        "detail": "User consent required — R3 document contains irreversible actions"
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent sends the resource token to its PS. PS sees aud=its own URL — it is the sole token authority (3-party).",
+        "PS sees r3_uri and r3_s256 in the resource token. It needs to fetch the R3 document to evaluate policy and show consent.",
+        "PS returns 202 Accepted with a pending URL (for polling) and an interaction URL (for the user to visit and consent).",
+        "PS fetches the R3 doc in the background (step 3) to populate the consent UI before the user arrives."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "ps",
+      "to": "resource",
+      "label": "GET /r3/a1b2c3d4 → R3 document with display fields for consent",
+      "method": "GET",
+      "url": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\");created=1741825002;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwks_uri;jwks_uri=\"https://ps.example/.well-known/jwks.json\"",
+        "Signature": "sig=:UFNGZXRjaGVzUjNEb2NGb3JDb25zZW50VVJMU2lnQmFzZTY0::"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "immutable"
+      },
+      "response_body": {
+        "version": "2",
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          { "tool": "create_calendar_event" },
+          { "tool": "send_calendar_invite" }
+        ],
+        "display": {
+          "summary": "Create events and send meeting invitations on your work calendar",
+          "implications": "New calendar events will be created. Meeting invitations will be sent to specified attendees from your calendar identity.",
+          "data_accessed": "Event titles, times, attendee email addresses, and calendar identity (display name and email)",
+          "irreversible": "Sent meeting invitations cannot be unsent. Recipients will receive email notifications immediately upon event creation."
+        }
+      },
+      "tokens": [],
+      "r3_document": {
+        "version": "2",
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          { "tool": "create_calendar_event" },
+          { "tool": "send_calendar_invite" }
+        ],
+        "display": {
+          "summary": "Create events and send meeting invitations on your work calendar",
+          "implications": "New calendar events will be created. Meeting invitations will be sent to specified attendees from your calendar identity.",
+          "data_accessed": "Event titles, times, attendee email addresses, and calendar identity (display name and email)",
+          "irreversible": "Sent meeting invitations cannot be unsent. Recipients will receive email notifications immediately upon event creation."
+        }
+      },
+      "annotations": [
+        "PS fetches the R3 document to populate the consent UI. Agents cannot fetch this endpoint — only the PS (or AS in 4-party).",
+        "PS verifies SHA-256(canonical JSON) == r3_s256 from the resource token. Mismatch → reject.",
+        "The display section is written by the resource (what IT does), not the agent (what it wants).",
+        "display.irreversible is the key field: PS uses this to require explicit user approval before proceeding.",
+        "Cache-Control: immutable — this URI is content-addressed. If the resource ever changes this document, it will be at a new URI with a new hash."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "user",
+      "to": "ps",
+      "label": "User reviews consent (irreversible warning shown) → approves",
+      "method": "GET",
+      "url": "https://ps.example/consent?req=d4e5f6a7b8c9",
+      "request_headers": {
+        "Cookie": "session=user-session-abc123",
+        "User-Agent": "Mozilla/5.0"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "text/html"
+      },
+      "response_body": {
+        "_ui": "consent_page",
+        "agent": "aauth:local@agent.example",
+        "resource": "calendar.example.com",
+        "r3_summary": "Create events and send meeting invitations on your work calendar",
+        "r3_implications": "Meeting invitations will be sent to specified attendees from your calendar identity.",
+        "r3_data_accessed": "Event titles, times, attendee email addresses, and calendar identity",
+        "r3_irreversible": "⚠️ Sent meeting invitations cannot be unsent",
+        "user_action": "approved"
+      },
+      "tokens": [],
+      "annotations": [
+        "PS renders the consent page using the display fields from the R3 document.",
+        "The irreversible warning is prominently shown: 'Sent meeting invitations cannot be unsent'.",
+        "User sees exactly what the resource itself declared — not what the agent claims it will do.",
+        "User approves. The PS can now issue the auth token."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "agent",
+      "to": "ps",
+      "label": "Poll /pending/... → 200 auth token (r3_s256 = immutable audit record)",
+      "method": "GET",
+      "url": "https://ps.example/pending/d4e5f6a7b8c9",
+      "request_headers": {
+        "Host": "ps.example",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741825060;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:UG9sbGluZ1BlbmRpbmdQU1VSTFNpZ25hdHVyZUJhc2U2NEFmdGVyQ29uc2VudA==:"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.Y29udGVudC1hZGRyZXNzZWQtcHMtYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Auth Token (with audit trail)",
+          "typ": "auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.Y29udGVudC1hZGRyZXNzZWQtcHMtYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "ps-key-1",
+            "typ": "auth+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-ca-1f2e3d",
+            "agent": "aauth:local@agent.example",
+            "sub": "user:alice@example.com",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "create_calendar_event" },
+                { "tool": "send_calendar_invite" }
+              ]
+            },
+            "iat": 1741825065,
+            "exp": 1741825965
+          },
+          "signature_b64": "MEYCIQDcontent_addressed_audit_auth_token_display_only"
+        }
+      ],
+      "annotations": [
+        "After user approval, the next poll returns 200 with the PS-issued auth token (iss=PS in 3-party).",
+        "AUDIT: r3_uri + r3_s256 are baked into the auth token. This is a permanent, verifiable record of which R3 document was in effect at approval time.",
+        "If the resource later updates the document at the same URI, existing tokens still reference the previous version's hash.",
+        "Anyone with this token can verify the exact authorization semantics by fetching r3_uri and checking SHA-256 == r3_s256.",
+        "The PS audit log records r3_uri + r3_s256 alongside the agent identifier, user identity, and timestamp — a complete, unforgeable record."
+      ]
+    }
+  ],
+  "token_flow": [
+    {
+      "token": "resource_token",
+      "label": "Resource Token",
+      "tokenType": "resource+jwt",
+      "accent": "resource",
+      "events": [
+        { "step": 1, "participant": "resource", "label": "Issued with r3_uri + r3_s256 (aud=PS)", "kind": "issued" },
+        { "step": 2, "participant": "agent", "label": "Forwarded to Person Server", "kind": "forwarded" }
+      ]
+    },
+    {
+      "token": "auth_token",
+      "label": "Auth Token",
+      "tokenType": "auth+jwt",
+      "accent": "auth",
+      "events": [
+        { "step": 5, "participant": "ps", "label": "Issued by PS after user consent", "kind": "issued" }
+      ]
+    }
+  ],
+  "deferred_timeline": {
+    "title": "User Consent Flow",
+    "events": [
+      {
+        "step": 2,
+        "status": 202,
+        "label": "Deferred — consent required",
+        "detail": "PS needs user approval. R3 doc has irreversible action: sent invitations cannot be recalled."
+      },
+      {
+        "step": 5,
+        "status": 200,
+        "label": "Approved — auth token issued",
+        "detail": "User reviewed the R3 display fields and approved. Auth token includes r3_s256 as immutable audit record."
+      }
+    ]
+  }
+}

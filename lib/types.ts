@@ -53,6 +53,7 @@ export interface ProtocolStep {
   response_body?: unknown;
   tokens: DecodedToken[];
   signature?: SignatureDetails;
+  r3_document?: R3Document;
   annotations: string[];               // explanatory notes / spec references
   is_response?: boolean;               // true for response arrows
 }
@@ -111,9 +112,25 @@ export interface S256ChainLink {
   detail: string;
 }
 
+// ─── R3 (Rich Resource Requests) ─────────────────────────────────────────────
+
+export interface R3Display {
+  summary: string;
+  implications?: string;
+  data_accessed?: string;
+  irreversible?: string;
+}
+
+export interface R3Document {
+  version?: string;
+  vocabulary: string;
+  operations: Record<string, unknown>[];
+  display?: R3Display;
+}
+
 // ─── Scenarios ────────────────────────────────────────────────────────────────
 
-export type ScenarioCategory = "signing" | "access" | "missions" | "advanced" | "bootstrap";
+export type ScenarioCategory = "signing" | "access" | "missions" | "advanced" | "bootstrap" | "r3";
 
 export interface ScenarioVariant {
   description: string;

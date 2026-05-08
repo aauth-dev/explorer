@@ -1,0 +1,407 @@
+{
+  "id": "r3-conditional-ops",
+  "title": "Conditional Operations",
+  "description": "An agent holds an auth token where list_calendar_events is fully granted but create_calendar_event is conditional. When it attempts to create an event, the resource challenges with the actual call parameters. The agent sends the conditional resource token to its Person Server (PS), which federates with the AS. The AS evaluates the concrete request — not just intent — before issuing a narrow per-call auth token.",
+  "spec_section": "R3 §6 — Resource Enforcement",
+  "category": "r3",
+  "participants": [
+    { "id": "agent", "label": "Agent", "type": "agent" },
+    { "id": "resource", "label": "Calendar Resource", "type": "resource" },
+    { "id": "ps", "label": "Person Server", "type": "person-server" },
+    { "id": "as", "label": "Auth Server", "type": "access-server" }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "resource",
+      "label": "POST /mcp/tools/call (create_event) → 401 AAuth-Requirement (conditional)",
+      "method": "POST",
+      "url": "https://calendar.example.com/mcp/tools/call",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Authorization": "DPoP eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\");created=1741824100;alg=\"ed25519\"",
+        "Signature": "sig=:Q29uZGl0aW9uYWxPcENhbGxTaWduYXR1cmVCYXNlNjQ=:"
+      },
+      "request_body": {
+        "name": "create_calendar_event",
+        "arguments": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": ["alice@example.com", "cfo@example.com", "ceo@example.com"]
+        }
+      },
+      "response_status": 401,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…\""
+      },
+      "response_body": {
+        "error": "conditional_operation",
+        "error_description": "create_calendar_event requires per-call authorization with actual parameters"
+      },
+      "tokens": [
+        {
+          "name": "Existing Auth Token (r3_conditional)",
+          "typ": "auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtaXNzdWVyLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtNmIxYzNkIiwiYWdlbnQiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwic3ViIjoidXNlcjphbGljZUBleGFtcGxlLmNvbSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvYTFiMmMzZDRlNWY2Nzg5MCIsInIzX3MyNTYiOiJaektsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5QWJDZEVEZY5IaUpLbE1uIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn1dfSwicjNfY29uZGl0aW9uYWwiOnsidm9jYWJ1bGFyeSI6InVybjphYXV0aDp2b2NhYnVsYXJ5Om1jcCIsIm9wZXJhdGlvbnMiOlt7InRvb2wiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQifV19fQ.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-issuer.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-6b1c3d",
+            "agent": "aauth:local@agent.example",
+            "sub": "user:alice@example.com",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "list_calendar_events" }
+              ]
+            },
+            "r3_conditional": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "create_calendar_event" }
+              ]
+            },
+            "iat": 1741824000,
+            "exp": 1741824900
+          },
+          "signature_b64": "MEYCIQDexisting_auth_token_with_conditional_grant_display_only"
+        },
+        {
+          "name": "Conditional Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImNhbGxfcGFyYW1zIjp7Im5hbWUiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQiLCJhcmd1bWVudHMiOnsidGl0bGUiOiJCdWRnZXQgUmV2aWV3Iiwic3RhcnQiOiIyMDI2LTA1LTE1VDA5OjAwOjAwWiIsImVuZCI6IjIwMjYtMDUtMTVUMTA6MDA6MDBaIiwiYXR0ZW5kZWVzIjpbImFsaWNlQGV4YW1wbGUuY29tIiwiY2ZvQGV4YW1wbGUuY29tIiwiY2VvQGV4YW1wbGUuY29tIl19fSwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-2",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-cond-9a3b",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "call_params": {
+              "name": "create_calendar_event",
+              "arguments": {
+                "title": "Budget Review",
+                "start": "2026-05-15T09:00:00Z",
+                "end": "2026-05-15T10:00:00Z",
+                "attendees": ["alice@example.com", "cfo@example.com", "ceo@example.com"]
+              }
+            },
+            "iat": 1741824100,
+            "exp": 1741824200
+          },
+          "signature_b64": "MEYCIQDconditional_resource_token_with_call_params_display_only"
+        }
+      ],
+      "annotations": [
+        "Agent presents the auth token. Resource checks: 'create_calendar_event' is in r3_conditional, not r3_granted.",
+        "Resource issues a 401 challenge with a NEW resource token that embeds the actual call parameters (title, attendees, time).",
+        "KEY: The AS will now evaluate the CONCRETE call — not just that the agent wants to create events, but WHO is being invited to WHICH meeting.",
+        "This lets the AS enforce fine-grained policy: e.g., 'allow meeting creation but require approval when inviting executives'."
+      ]
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /token + conditional resource token → PS (PS federates to AS)",
+      "method": "POST",
+      "url": "https://ps.example/token",
+      "request_headers": {
+        "Host": "ps.example",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824101;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature": "sig=:QWdlbnRUb1BTQ29uZGl0aW9uYWxSZXNvdXJjZVRva2VuQmFzZTY0:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Conditional Resource Token",
+          "typ": "resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImNhbGxfcGFyYW1zIjp7Im5hbWUiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQiLCJhcmd1bWVudHMiOnsidGl0bGUiOiJCdWRnZXQgUmV2aWV3Iiwic3RhcnQiOiIyMDI2LTA1LTE1VDA5OjAwOjAwWiIsImVuZCI6IjIwMjYtMDUtMTVUMTA6MDA6MDBaIiwiYXR0ZW5kZWVzIjpbImFsaWNlQGV4YW1wbGUuY29tIiwiY2ZvQGV4YW1wbGUuY29tIiwiY2VvQGV4YW1wbGUuY29tIl19fSwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-2",
+            "typ": "resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-cond-9a3b",
+            "agent": "aauth:local@agent.example",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "call_params": {
+              "name": "create_calendar_event",
+              "arguments": {
+                "title": "Budget Review",
+                "start": "2026-05-15T09:00:00Z",
+                "end": "2026-05-15T10:00:00Z",
+                "attendees": ["alice@example.com", "cfo@example.com", "ceo@example.com"]
+              }
+            },
+            "iat": 1741824100,
+            "exp": 1741824200
+          },
+          "signature_b64": "MEYCIQDconditional_resource_token_with_call_params_display_only"
+        }
+      ],
+      "annotations": [
+        "Agent sends the conditional resource token (containing actual call params) to its Person Server.",
+        "PS reads aud in the resource token: aud=AS URL → PS must federate with the AS (step 3).",
+        "The agent never contacts the AS directly — it always routes through its PS."
+      ]
+    },
+    {
+      "step": 3,
+      "from": "ps",
+      "to": "as",
+      "label": "PS federates: POST /token + conditional resource token → per-call policy evaluation",
+      "method": "POST",
+      "url": "https://as.example.com/token",
+      "request_headers": {
+        "Host": "as.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824102;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwks_uri;jwks_uri=\"https://ps.example/.well-known/jwks.json\"",
+        "Signature": "sig=:UFNGZWRlcmF0ZXNDb25kaXRpb25hbFRva2VuVG9BU0Jhc2U2NA==:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Per-Call Auth Token",
+          "typ": "auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-issuer.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-percall-f4c2",
+            "agent": "aauth:local@agent.example",
+            "sub": "user:alice@example.com",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "create_calendar_event" }
+              ]
+            },
+            "call_binding": {
+              "name": "create_calendar_event",
+              "title": "Budget Review",
+              "attendees_hash": "sha256:8f3a2b1c..."
+            },
+            "iat": 1741824102,
+            "exp": 1741824132
+          },
+          "signature_b64": "MEYCIQDper_call_auth_token_narrow_grant_display_only"
+        }
+      ],
+      "annotations": [
+        "PS presents the conditional resource token (with call_params) to the AS.",
+        "AS evaluates the concrete call: 'Budget Review' meeting with cfo@ and ceo@. Policy says: yes, allow.",
+        "AS issues a narrow per-call auth token: r3_granted covers ONLY create_calendar_event, expires in 30 seconds.",
+        "The call_binding field pins this token to the specific call parameters — the resource can verify nothing was changed.",
+        "This step is internal to the PS→AS federation. The agent does not see it."
+      ]
+    },
+    {
+      "step": 4,
+      "from": "ps",
+      "to": "agent",
+      "label": "200 per-call auth token returned to agent",
+      "method": "RESPONSE",
+      "url": "https://ps.example/token (response)",
+      "request_headers": {},
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+        "token_type": "DPoP"
+      },
+      "tokens": [
+        {
+          "name": "Per-Call Auth Token",
+          "typ": "auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-issuer.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-percall-f4c2",
+            "agent": "aauth:local@agent.example",
+            "sub": "user:alice@example.com",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/a1b2c3d4e5f67890",
+            "r3_s256": "ZzKlMnOpQrStUvWxYz0123456789AbCdEfGhIjKlMn",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                { "tool": "create_calendar_event" }
+              ]
+            },
+            "call_binding": {
+              "name": "create_calendar_event",
+              "title": "Budget Review",
+              "attendees_hash": "sha256:8f3a2b1c..."
+            },
+            "iat": 1741824102,
+            "exp": 1741824132
+          },
+          "signature_b64": "MEYCIQDper_call_auth_token_narrow_grant_display_only"
+        }
+      ],
+      "is_response": true,
+      "annotations": [
+        "PS returns the AS-issued per-call auth token to the agent.",
+        "r3_granted now covers create_calendar_event — the token is narrow (only this one tool) and short-lived (30s).",
+        "Agent can now retry the call to the resource."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "agent",
+      "to": "resource",
+      "label": "Retry POST /mcp/tools/call with per-call auth token → 201 created",
+      "method": "POST",
+      "url": "https://calendar.example.com/mcp/tools/call",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Authorization": "DPoP eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ…",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\");created=1741824110;alg=\"ed25519\"",
+        "Signature": "sig=:UGVyQ2FsbFJldHJ5U2lnbmF0dXJlQmFzZTY0U2Vjb25k=:"
+      },
+      "request_body": {
+        "name": "create_calendar_event",
+        "arguments": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": ["alice@example.com", "cfo@example.com", "ceo@example.com"]
+        }
+      },
+      "response_status": 201,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Event created: Budget Review on 2026-05-15 09:00–10:00 UTC. Invitations sent to alice@example.com, cfo@example.com, and ceo@example.com."
+          }
+        ]
+      },
+      "tokens": [],
+      "annotations": [
+        "Agent retries with the per-call auth token. Resource checks r3_granted: create_calendar_event is now fully granted.",
+        "Resource validates call_binding against the actual request parameters — they match, so the token is accepted.",
+        "201 Created. The event is created.",
+        "The per-call token expires in 30 seconds (exp). It cannot be reused for a different meeting or a different time."
+      ]
+    }
+  ],
+  "token_flow": [
+    {
+      "token": "auth_token_existing",
+      "label": "Existing Auth Token",
+      "tokenType": "auth+jwt",
+      "accent": "auth",
+      "events": [
+        { "step": 1, "participant": "agent", "label": "Presented (r3_conditional hit)", "kind": "presented" }
+      ]
+    },
+    {
+      "token": "resource_token_conditional",
+      "label": "Conditional Resource Token",
+      "tokenType": "resource+jwt",
+      "accent": "resource",
+      "events": [
+        { "step": 1, "participant": "resource", "label": "Issued with call params", "kind": "issued" },
+        { "step": 2, "participant": "agent", "label": "Forwarded to Person Server", "kind": "forwarded" },
+        { "step": 3, "participant": "ps", "label": "PS presents to Auth Server", "kind": "presented" }
+      ]
+    },
+    {
+      "token": "auth_token_percall",
+      "label": "Per-Call Auth Token",
+      "tokenType": "auth+jwt",
+      "accent": "auth",
+      "events": [
+        { "step": 3, "participant": "as", "label": "Issued (narrow, 30s TTL)", "kind": "issued" },
+        { "step": 4, "participant": "ps", "label": "Returned to agent via PS", "kind": "returned" },
+        { "step": 5, "participant": "agent", "label": "Presented for retry", "kind": "presented" }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Radio, Lock, FileText, Zap, Layers, X, Key, GitBranch } from "lucide-react";
+import { ChevronDown, ChevronRight, Radio, Lock, FileText, Zap, Layers, X, Key, GitBranch, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -78,6 +78,16 @@ const PROTOCOL_NAV: NavSection[] = [
       { label: "Call Chaining", href: "/advanced/call-chaining" },
       { label: "Clarification Chat", href: "/advanced/clarification" },
       { label: "Interaction Chaining", href: "/advanced/interaction-chaining" },
+    ],
+  },
+  {
+    title: "Rich Resource Requests (R3)",
+    icon: Database,
+    color: "text-teal-400",
+    items: [
+      { label: "Vocabulary-Based Access", href: "/r3/vocabulary-basics" },
+      { label: "Conditional Operations", href: "/r3/conditional-ops" },
+      { label: "Content Addressing & Consent", href: "/r3/content-addressing" },
     ],
   },
 ];

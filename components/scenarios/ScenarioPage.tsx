@@ -14,6 +14,7 @@ import { TokenFlowDiagram } from "@/components/core/TokenFlowDiagram";
 import { DeferredResponseTimeline } from "@/components/core/DeferredResponseTimeline";
 import { MissionBlobViewer } from "@/components/core/MissionBlobViewer";
 import { S256ChainVisualization } from "@/components/core/S256ChainVisualization";
+import { R3DocumentViewer } from "@/components/core/R3DocumentViewer";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_COLORS = {
@@ -22,6 +23,7 @@ const CATEGORY_COLORS = {
   missions: "text-purple-400 bg-purple-500/10",
   advanced: "text-orange-400 bg-orange-500/10",
   bootstrap: "text-violet-400 bg-violet-500/10",
+  r3: "text-teal-400 bg-teal-500/10",
 };
 
 const MIN_DETAILS_WIDTH_PX = 260;
@@ -379,6 +381,8 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                   {scenario.s256_chain && scenario.s256_chain.length > 0 && (
                     <S256ChainVisualization links={scenario.s256_chain} />
                   )}
+
+                  {step.r3_document && <R3DocumentViewer document={step.r3_document} />}
 
                   <HeaderInspector
                     method={step.method}
