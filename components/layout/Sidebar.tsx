@@ -57,7 +57,7 @@ const PROTOCOL_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Missions",
+    title: "Missions — experimental",
     icon: FileText,
     color: "text-purple-400",
     items: [
