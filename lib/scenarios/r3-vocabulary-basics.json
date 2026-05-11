@@ -77,12 +77,12 @@
       "tokens": [
         {
           "name": "Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -135,12 +135,12 @@
       "tokens": [
         {
           "name": "Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -192,12 +192,12 @@
       "tokens": [
         {
           "name": "Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresourcetokensignaturefakedisplayonly",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -297,16 +297,16 @@
       "tokens": [
         {
           "name": "Auth Token",
-          "typ": "auth+jwt",
+          "typ": "aa-auth+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtaXNzdWVyLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtM2Q4YjJhIiwiYWdlbnQiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwic3ViIjoidXNlcjphbGljZUBleGFtcGxlLmNvbSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvYTFiMmMzZDRlNWY2Nzg5MCIsInIzX3MyNTYiOiJaektsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5QWJDZEVEZY5IaUpLbE1uIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn0seyJ0b29sIjoiY3JlYXRlX2NhbGVuZGFyX2V2ZW50In1dfSwiaWF0IjoxNzQxODI0MDAzLCJleHAiOjE3NDE4MjQ5MDN9.MEYCIQDauthtoken_signature_display_only",
           "header": {
             "alg": "ES256",
             "kid": "as-key-1",
-            "typ": "auth+jwt"
+            "typ": "aa-auth+jwt"
           },
           "payload": {
             "iss": "https://as.example.com",
-            "dwk": "aauth-issuer.json",
+            "dwk": "aauth-access.json",
             "aud": "https://calendar.example.com",
             "jti": "at-3d8b2a",
             "agent": "aauth:local@agent.example",
@@ -378,7 +378,7 @@
       },
       "tokens": [],
       "annotations": [
-        "Resource verifies the auth token signature via the AS's JWKS (at dwk path aauth-issuer.json).",
+        "Resource verifies the auth token signature via the AS's JWKS (at dwk path aauth-access.json).",
         "Tool name 'create_calendar_event' matches an operation in r3_granted — served immediately with no AS call.",
         "Resource enforces authorization from vocabulary-based claims it already understands. Zero round-trips to the AS.",
         "r3_uri + r3_s256 in the auth token form a permanent, verifiable audit record of exactly which R3 document was approved."

@@ -366,7 +366,7 @@
       "signature": null,
       "annotations": [
         "PS signs the federation request to AS with its own identity (sig=jwks_uri, PS server key).",
-        "AS trusts the PS because it is listed in AS's trusted_person_servers config (\u00a71440).",
+        "AS trusts the PS via a pre-established business relationship, or via the dynamic trust paths defined in \u00a7PS-AS Federation (interaction-based user binding, payment, or claims-only).",
         "AS inspects the resource token mission claim and preserves it unchanged in the auth token.",
         "The resulting aa-auth+jwt has iss=AS, dwk=aauth-access.json (\u00a71531), and carries mission: {approver, s256}."
       ],

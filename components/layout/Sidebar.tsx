@@ -51,7 +51,7 @@ const PROTOCOL_NAV: NavSection[] = [
     items: [
       { label: "Identity-Based", href: "/access/identity-based" },
       { label: "Resource-Managed (2-party)", href: "/access/resource-managed" },
-      { label: "PS-Managed (3-party)", href: "/access/ps-managed" },
+      { label: "PS-Asserted (3-party)", href: "/access/ps-asserted" },
       { label: "Federated (4-party)", href: "/access/federated" },
       { label: "Compare Modes", href: "/access/compare" },
     ],
@@ -128,7 +128,6 @@ const BOOTSTRAP_NAV: NavSection[] = [
       { label: "Web App", href: "/bootstrap/web-app" },
       { label: "Mobile (iOS)", href: "/bootstrap/ios" },
       { label: "Mobile (Android)", href: "/bootstrap/android" },
-      { label: "Server / Workload", href: "/bootstrap/server-workload" },
       { label: "Self-Hosted", href: "/bootstrap/self-hosted" },
     ],
   },

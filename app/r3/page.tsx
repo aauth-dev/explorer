@@ -120,15 +120,15 @@ export default function R3OverviewPage() {
         <div className="space-y-0.5">
           <p className="text-sm font-medium">R3 extends the AAuth Protocol</p>
           <p className="text-xs text-muted-foreground">
-            R3 builds on top of the standard resource access flows. See how PS-managed access works
+            R3 builds on top of the standard resource access flows. See how PS-asserted access works
             before diving into R3.
           </p>
         </div>
         <Link
-          href="/access/ps-managed"
+          href="/access/ps-asserted"
           className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
         >
-          PS-Managed flow
+          PS-Asserted flow
           <ArrowRight className="h-3 w-3 opacity-70" />
         </Link>
       </section>

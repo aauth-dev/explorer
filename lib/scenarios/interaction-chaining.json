@@ -171,11 +171,9 @@
       "request_body": null,
       "response_status": 401,
       "response_headers": {
-        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InIyLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…\""
+        "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InIyLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…\""
       },
-      "response_body": {
-        "error": "auth_token_required"
-      },
+      "response_body": null,
       "tokens": [
         {
           "name": "R2 Resource Token",

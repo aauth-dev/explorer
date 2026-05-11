@@ -5,80 +5,78 @@ const MODES = [
   {
     id: "identity-based",
     label: "Identity-Based",
-    parties: "2-party",
+    parties: "Agent + Resource",
     color: "text-green-400",
     border: "border-green-500/30",
     href: "/access/identity-based",
     participants: ["Agent", "Resource"],
     flow: [
-      { arrow: "Agent → Resource", note: "Signed request (sig=jwks_uri)" },
-      { arrow: "Resource → Agent", note: "200 OK (access decision by identity)" },
+      { arrow: "Agent → Resource", note: "HTTPSig w/ agent token" },
+      { arrow: "Resource → Agent", note: "200 OK (access decision by agent identity)" },
     ],
-    tokens: [],
+    tokens: ["aa-agent+jwt"],
     infra: "None — just the agent and resource",
-    useCase: "Replacing API keys. No external infra needed.",
-    tradeoff: "Resource must maintain its own access policy",
+    useCase: "Replacing API keys with cryptographic identity",
+    tradeoff: "Resource maintains its own access policy by agent identity",
   },
   {
-    id: "user-delegation",
-    label: "User Delegation",
-    parties: "5-party deferred",
-    color: "text-blue-400",
-    border: "border-blue-500/30",
-    href: "/access/user-delegation",
-    participants: ["Agent", "Resource", "Person Server", "Access Server", "User"],
+    id: "resource-managed",
+    label: "Resource-Managed",
+    parties: "Two-Party",
+    color: "text-cyan-400",
+    border: "border-cyan-500/30",
+    href: "/access/resource-managed",
+    participants: ["Agent", "Resource"],
     flow: [
-      { arrow: "Agent → Resource", note: "Signed request → 401 + resource token" },
-      { arrow: "Agent → PS → AS", note: "Federation request reaches AS" },
-      { arrow: "AS → PS → Agent", note: "202 + pending URL + interaction URL" },
-      { arrow: "User → AS", note: "Authenticate and approve consent" },
-      { arrow: "Agent → PS", note: "Poll pending URL: 202 → 202 → 200" },
-      { arrow: "Agent → Resource", note: "Present auth token → 200" },
+      { arrow: "Agent → Resource", note: "HTTPSig w/ agent token" },
+      { arrow: "Resource → Agent", note: "202 + AAuth-Requirement: interaction" },
+      { arrow: "User → Resource", note: "Completes interaction at resource's own page" },
+      { arrow: "Agent → Resource", note: "Poll → 200 + AAuth-Access (opaque token)" },
+      { arrow: "Agent → Resource", note: "Subsequent calls: Authorization: AAuth <token>" },
     ],
-    tokens: ["aa-resource+jwt", "aa-agent+jwt", "aa-auth+jwt"],
-    infra: "Person Server + Access Server + user interaction",
-    useCase: "When human consent is required before delegated agent access",
-    tradeoff: "Extra round-trips and polling before access is granted",
+    tokens: ["aa-agent+jwt", "AAuth-Access (opaque)"],
+    infra: "Resource handles auth itself (interaction, OAuth/OIDC, internal policy)",
+    useCase: "Resource manages authorization without an external PS or AS",
+    tradeoff: "Token is opaque and bound to the resource via the HTTP signature",
   },
   {
-    id: "ps-managed",
-    label: "PS-Managed",
-    parties: "4-party",
+    id: "ps-asserted",
+    label: "PS-Asserted",
+    parties: "Three-Party",
     color: "text-purple-400",
     border: "border-purple-500/30",
-    href: "/access/federated",
-    participants: ["Agent", "Resource", "Person Server", "Access Server"],
+    href: "/access/ps-asserted",
+    participants: ["Agent", "Resource", "Person Server"],
     flow: [
-      { arrow: "Agent → Resource", note: "Signed request → 401 + resource token" },
-      { arrow: "Agent → PS", note: "POST resource token" },
-      { arrow: "PS → AS", note: "Federation: PS signs + forwards" },
-      { arrow: "AS → PS → Agent", note: "Auth token returned" },
+      { arrow: "Agent → Resource", note: "HTTPSig → 401 + resource token (aud=PS)" },
+      { arrow: "Agent → PS", note: "POST /token w/ resource token" },
+      { arrow: "PS → Agent", note: "Auth token (iss=PS, dwk=aauth-person.json)" },
       { arrow: "Agent → Resource", note: "Present auth token → 200" },
     ],
-    tokens: ["aa-resource+jwt", "aa-agent+jwt", "aa-auth+jwt (from AS)"],
-    infra: "Person Server + Access Server",
-    useCase: "Autonomous cross-domain access with explicit AS policy enforcement",
-    tradeoff: "More moving parts; PS and AS must trust each other",
+    tokens: ["aa-agent+jwt", "aa-resource+jwt", "aa-auth+jwt (from PS)"],
+    infra: "Person Server (no Access Server)",
+    useCase: "Resource accepts identity claims (sub, email, tenant, groups, roles) from any PS",
+    tradeoff: "Resource still applies its own policy on the asserted claims",
   },
   {
     id: "federated",
-    label: "PS-AS Federation Trust",
-    parties: "4-party trust focus",
+    label: "Federated",
+    parties: "Four-Party",
     color: "text-orange-400",
     border: "border-orange-500/30",
-    href: "/access/ps-managed",
+    href: "/access/federated",
     participants: ["Agent", "Resource", "Person Server", "Access Server"],
     flow: [
-      { arrow: "Agent → Resource", note: "Signed request → 401 + resource token (aud=AS)" },
-      { arrow: "Agent → PS", note: "POST resource token" },
-      { arrow: "PS → AS", note: "Trusted PS federates using its own jwks_uri identity" },
-      { arrow: "AS → PS", note: "AS honors only trusted_person_servers" },
+      { arrow: "Agent → Resource", note: "HTTPSig → 401 + resource token (aud=AS)" },
+      { arrow: "Agent → PS", note: "POST /token w/ resource token" },
+      { arrow: "PS → AS", note: "PS federates: POST /token (signed)" },
+      { arrow: "AS → PS → Agent", note: "Auth token (iss=AS, dwk=aauth-access.json)" },
       { arrow: "Agent → Resource", note: "Present auth token → 200" },
     ],
-    tokens: ["aa-agent+jwt (ps claim)", "aa-resource+jwt", "aa-auth+jwt"],
-    infra: "Person Server + Access Server",
-    useCase: "Explaining trust boundaries and PS-only token endpoint access",
-    tradeoff: "Same topology as federated mode, but the trust model must be made explicit",
+    tokens: ["aa-agent+jwt", "aa-resource+jwt", "aa-auth+jwt (from AS)"],
+    infra: "Person Server + Access Server, PS-AS trust (pre-established or dynamic)",
+    useCase: "Cross-domain access with the resource's AS enforcing policy",
+    tradeoff: "Most moving parts; the PS-AS trust path must be established",
   },
 ];
 
@@ -88,9 +86,11 @@ export default function AccessComparePage() {
       <div className="space-y-2">
         <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Resource Access</p>
         <h1 className="text-3xl font-bold">Resource Access Mode Comparison</h1>
-        <p className="text-muted-foreground max-w-2xl">
-          AAuth defines four resource access modes, from simple 2-party identity checks to full
-          4-party federation with a Person Server and Access Server. Each mode builds on the previous.
+        <p className="text-muted-foreground max-w-3xl">
+          AAuth defines four resource access modes, from simple identity verification to full
+          four-party federation. The protocol works in every mode — adoption does not require
+          coordination between parties. Agent governance (missions, permission, audit, interaction
+          relay) is an orthogonal layer that any agent with a PS can add on top of any mode.
         </p>
       </div>
 
@@ -169,20 +169,34 @@ export default function AccessComparePage() {
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h2 className="text-sm font-semibold">Progressive Adoption</h2>
         <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-          Each mode is independently deployable. A resource can start with identity-based access
-          (just verify the agent&apos;s signature) and later add a PS or AS without changing the agent&apos;s
-          signing approach. The main change is what the resource returns in its `401` challenge and
-          which downstream party mints the eventual access token.
+          Each mode is independently deployable. A resource can start by just verifying the agent&apos;s
+          signature (identity-based) and later add interaction-based authorization (resource-managed),
+          accept identity claims from any PS (PS-asserted), or deploy its own access server
+          (federated) — without changing the agent&apos;s signing approach. The main change is what the
+          resource returns in its `401` challenge and which party mints the eventual auth token.
         </p>
         <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-muted-foreground">
           <span className="text-green-400">Identity-Based</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-blue-400">User Delegation</span>
+          <span className="text-cyan-400">Resource-Managed</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-purple-400">PS-Managed</span>
+          <span className="text-purple-400">PS-Asserted</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-orange-400">PS-AS Trust</span>
+          <span className="text-orange-400">Federated</span>
         </div>
+      </div>
+
+      {/* Collocation callout */}
+      <div className="rounded-xl border border-dashed border-border/70 bg-muted/10 p-5 space-y-2">
+        <p className="text-sm font-medium">Roles vs. deployment</p>
+        <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
+          AP, PS, AS, Resource, and Agent are <em>roles</em>, not deployment units. A single
+          server can fill multiple roles — for example, an organizational deployment may
+          operate AP + PS + AS together for employees and internal resources, with federation
+          only incurred at the boundary. When the agent&apos;s PS and the resource&apos;s AS are the
+          same server (&quot;PS-AS Collapse&quot;), federation reduces to a single internal
+          evaluation. The wire protocol is unchanged regardless of collocation.
+        </p>
       </div>
     </div>
   );

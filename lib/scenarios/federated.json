@@ -112,12 +112,10 @@
       "request_body": null,
       "response_status": 401,
       "response_headers": {
-        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw…\"",
+        "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw…\"",
         "Content-Type": "application/json"
       },
-      "response_body": {
-        "error": "auth_token_required"
-      },
+      "response_body": null,
       "tokens": [
         {
           "name": "Resource Token",
@@ -501,11 +499,9 @@
         "request_body": null,
         "response_status": 401,
         "response_headers": {
-          "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw…\""
+          "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw…\""
         },
-        "response_body": {
-          "error": "auth_token_required"
-        },
+        "response_body": null,
         "tokens": [
           {
             "name": "Resource Token",

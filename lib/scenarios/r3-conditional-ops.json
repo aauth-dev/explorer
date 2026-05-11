@@ -37,7 +37,7 @@
       "response_status": 401,
       "response_headers": {
         "Content-Type": "application/json",
-        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…\""
+        "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…\""
       },
       "response_body": {
         "error": "conditional_operation",
@@ -46,16 +46,16 @@
       "tokens": [
         {
           "name": "Existing Auth Token (r3_conditional)",
-          "typ": "auth+jwt",
+          "typ": "aa-auth+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtaXNzdWVyLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtNmIxYzNkIiwiYWdlbnQiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwic3ViIjoidXNlcjphbGljZUBleGFtcGxlLmNvbSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvYTFiMmMzZDRlNWY2Nzg5MCIsInIzX3MyNTYiOiJaektsTW5PcFFyU3RVdld4WXowMTIzNDU2Nzg5QWJDZEVEZY5IaUpLbE1uIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn1dfSwicjNfY29uZGl0aW9uYWwiOnsidm9jYWJ1bGFyeSI6InVybjphYXV0aDp2b2NhYnVsYXJ5Om1jcCIsIm9wZXJhdGlvbnMiOlt7InRvb2wiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQifV19fQ.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "as-key-1",
-            "typ": "auth+jwt"
+            "typ": "aa-auth+jwt"
           },
           "payload": {
             "iss": "https://as.example.com",
-            "dwk": "aauth-issuer.json",
+            "dwk": "aauth-access.json",
             "aud": "https://calendar.example.com",
             "jti": "at-6b1c3d",
             "agent": "aauth:local@agent.example",
@@ -81,12 +81,12 @@
         },
         {
           "name": "Conditional Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImNhbGxfcGFyYW1zIjp7Im5hbWUiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQiLCJhcmd1bWVudHMiOnsidGl0bGUiOiJCdWRnZXQgUmV2aWV3Iiwic3RhcnQiOiIyMDI2LTA1LTE1VDA5OjAwOjAwWiIsImVuZCI6IjIwMjYtMDUtMTVUMTA6MDA6MDBaIiwiYXR0ZW5kZWVzIjpbImFsaWNlQGV4YW1wbGUuY29tIiwiY2ZvQGV4YW1wbGUuY29tIiwiY2VvQGV4YW1wbGUuY29tIl19fSwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-2",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -147,12 +147,12 @@
       "tokens": [
         {
           "name": "Conditional Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImNhbGxfcGFyYW1zIjp7Im5hbWUiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQiLCJhcmd1bWVudHMiOnsidGl0bGUiOiJCdWRnZXQgUmV2aWV3Iiwic3RhcnQiOiIyMDI2LTA1LTE1VDA5OjAwOjAwWiIsImVuZCI6IjIwMjYtMDUtMTVUMTA6MDA6MDBaIiwiYXR0ZW5kZWVzIjpbImFsaWNlQGV4YW1wbGUuY29tIiwiY2ZvQGV4YW1wbGUuY29tIiwiY2VvQGV4YW1wbGUuY29tIl19fSwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-2",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -212,16 +212,16 @@
       "tokens": [
         {
           "name": "Per-Call Auth Token",
-          "typ": "auth+jwt",
+          "typ": "aa-auth+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "as-key-1",
-            "typ": "auth+jwt"
+            "typ": "aa-auth+jwt"
           },
           "payload": {
             "iss": "https://as.example.com",
-            "dwk": "aauth-issuer.json",
+            "dwk": "aauth-access.json",
             "aud": "https://calendar.example.com",
             "jti": "at-percall-f4c2",
             "agent": "aauth:local@agent.example",
@@ -280,16 +280,16 @@
       "tokens": [
         {
           "name": "Per-Call Auth Token",
-          "typ": "auth+jwt",
+          "typ": "aa-auth+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.cGVyY2FsbC1uYXJyb3ctYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "as-key-1",
-            "typ": "auth+jwt"
+            "typ": "aa-auth+jwt"
           },
           "payload": {
             "iss": "https://as.example.com",
-            "dwk": "aauth-issuer.json",
+            "dwk": "aauth-access.json",
             "aud": "https://calendar.example.com",
             "jti": "at-percall-f4c2",
             "agent": "aauth:local@agent.example",

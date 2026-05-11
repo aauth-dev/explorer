@@ -1,8 +1,8 @@
 {
-  "id": "ps-managed",
-  "title": "PS-Managed Access (3-party)",
-  "description": "The resource issues a resource token whose aud is the agent's Person Server URL — not an AS. The agent sends the resource token to the PS, and the PS issues the auth token directly. No Access Server is involved. The auth token's iss is the PS itself.",
-  "spec_section": "§ PS-Managed Access (Three-Party)",
+  "id": "ps-asserted",
+  "title": "PS-Asserted Access (3-party)",
+  "description": "The resource issues a resource token whose aud is the agent's Person Server URL — not an AS. The agent sends the resource token to the PS, and the PS issues the auth token directly, asserting identity claims (sub, optionally email, tenant, groups, roles) and consent for the requested scope. No Access Server is involved. The auth token's iss is the PS itself, and the resource applies its own policy to the asserted claims.",
+  "spec_section": "§ PS-Asserted Access (Three-Party)",
   "category": "access",
   "demo_phase": 3,
   "participants": [
@@ -39,11 +39,9 @@
       "request_body": null,
       "response_status": 401,
       "response_headers": {
-        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlw…\""
+        "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlw…\""
       },
-      "response_body": {
-        "error": "auth_token_required"
-      },
+      "response_body": null,
       "tokens": [
         {
           "name": "Agent Token",
@@ -351,11 +349,9 @@
         "request_body": null,
         "response_status": 401,
         "response_headers": {
-          "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0x…\""
+          "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0x…\""
         },
-        "response_body": {
-          "error": "auth_token_required"
-        },
+        "response_body": null,
         "tokens": [
           {
             "name": "Agent Token",

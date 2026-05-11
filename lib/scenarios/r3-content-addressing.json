@@ -44,12 +44,12 @@
       "tokens": [
         {
           "name": "Resource Token",
-          "typ": "resource+jwt",
+          "typ": "aa-resource+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoicmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6InJ0LWNhLTg5MGEiLCJhZ2VudCI6ImFhdXRoOmxvY2FsQGFnZW50LmV4YW1wbGUiLCJhZ2VudF9qa3QiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwicjNfdXJpIjoiaHR0cHM6Ly9jYWxlbmRhci5leGFtcGxlLmNvbS9yMy9hMWIyYzNkNGU1ZjY3ODkwIiwicjNfczI1NiI6Ilp6S2xNbk9wUXJTdFV2V3hZejAxMjM0NTY3ODlBYkNkRWZHaElqS2xNbiIsImlhdCI6MTc0MTgyNTAwMCwiZXhwIjoxNzQxODI1MzAwfQ.MEYCIQDcontent_addr_resource_token_display_only",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
-            "typ": "resource+jwt"
+            "typ": "aa-resource+jwt"
           },
           "payload": {
             "iss": "https://calendar.example.com",
@@ -225,12 +225,12 @@
       "tokens": [
         {
           "name": "Auth Token (with audit trail)",
-          "typ": "auth+jwt",
+          "typ": "aa-auth+jwt",
           "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYXV0aCtqd3QifQ.Y29udGVudC1hZGRyZXNzZWQtcHMtYXV0aC10b2tlbi1wYXlsb2Fk.placeholder",
           "header": {
             "alg": "ES256",
             "kid": "ps-key-1",
-            "typ": "auth+jwt"
+            "typ": "aa-auth+jwt"
           },
           "payload": {
             "iss": "https://ps.example",
