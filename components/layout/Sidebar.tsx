@@ -78,6 +78,7 @@ const PROTOCOL_NAV: NavSection[] = [
       { label: "Call Chaining", href: "/advanced/call-chaining" },
       { label: "Clarification Chat", href: "/advanced/clarification" },
       { label: "Interaction Chaining", href: "/advanced/interaction-chaining" },
+      { label: "User Delegation (Deferred Auth)", href: "/access/user-delegation" },
     ],
   },
   {

@@ -1,8 +1,8 @@
 {
   "id": "resource-managed",
   "title": "Resource-Managed Access (2-party)",
-  "description": "The resource manages authorization entirely itself \u2014 no PS or AS involved. It verifies the agent's signed request, applies its own policy (allowlist, pre-registered key, or internal rule), and issues an opaque AAuth-Access token for subsequent calls. The token is a simple opaque string, not a JWT \u2014 the resource is its own authority.",
-  "spec_section": "\u00a7 Resource-Managed Access (Two-Party)",
+  "description": "The resource manages authorization entirely itself — no PS or AS involved. It verifies the agent's signed request, applies its own policy (allowlist, pre-registered key, or internal rule), and issues an opaque AAuth-Access token for subsequent calls. The token is a simple opaque string, not a JWT — the resource is its own authority.",
+  "spec_section": "§ Resource-Managed Access (Two-Party)",
   "category": "access",
   "demo_phase": 2,
   "participants": [
@@ -22,12 +22,12 @@
       "step": 1,
       "from": "agent",
       "to": "resource",
-      "label": "Signed GET /data \u2192 resource checks policy \u2192 200 + opaque token",
+      "label": "Signed GET /data → resource checks policy → 200 + opaque token",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
         "Host": "api.example",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:Hh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg:"
       },
@@ -45,7 +45,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -72,9 +72,9 @@
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
@@ -85,9 +85,9 @@
       "annotations": [
         "Agent presents its agent token in the Signature-Key header using sig=jwt.",
         "Resource verifies the agent token JWT and HTTP signature, then checks its internal policy.",
-        "This agent's domain is allowlisted \u2014 resource grants access immediately.",
+        "This agent's domain is allowlisted — resource grants access immediately.",
         "Resource issues an AAuth-Access header with an opaque token for subsequent calls.",
-        "The opaque token is a simple string minted by the resource \u2014 not a JWT, no PS or AS."
+        "The opaque token is a simple string minted by the resource — not a JWT, no PS or AS."
       ],
       "is_response": false
     },
@@ -95,13 +95,13 @@
       "step": 2,
       "from": "agent",
       "to": "resource",
-      "label": "Subsequent request with opaque token (signed) \u2192 200",
+      "label": "Subsequent request with opaque token (signed) → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
         "Host": "api.example",
         "Authorization": "AAuth rm-tok-a8f3c2e1b94d7065f2a1",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:ISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIQ:"
       },
@@ -118,7 +118,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -145,9 +145,9 @@
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"authorization\": AAuth rm-tok-a8f3c2e1b94d7065f2a1\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"authorization\": AAuth rm-tok-a8f3c2e1b94d7065f2a1\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
@@ -158,7 +158,7 @@
       },
       "annotations": [
         "Agent presents the opaque token via Authorization: AAuth <token>.",
-        "Agent MUST include 'authorization' in the HTTP signature covered components \u2014 this binds the opaque token to the signed request.",
+        "Agent MUST include 'authorization' in the HTTP signature covered components — this binds the opaque token to the signed request.",
         "Without the signature binding, the opaque token could be stolen and replayed as a standalone bearer token.",
         "Resource validates the signature and looks up the token in its own store."
       ],
@@ -166,7 +166,7 @@
     }
   ],
   "interactive": {
-    "description": "The resource requires user interaction before granting access \u2014 for example, the user must log in via the resource's own OIDC provider. The agent initiates the request, is redirected to an interaction URL backed by OIDC/OAuth, polls while the user authenticates, then receives an opaque token. No PS or AS is involved at any point.",
+    "description": "The resource requires user interaction before granting access — for example, the user must log in via the resource's own OIDC provider. The agent initiates the request, is redirected to an interaction URL backed by OIDC/OAuth, polls while the user authenticates, then receives an opaque token. No PS or AS is involved at any point.",
     "participants": [
       {
         "id": "agent",
@@ -196,11 +196,17 @@
         {
           "step": 2,
           "status": 202,
-          "label": "Polling \u2014 not yet approved",
+          "label": "Polling — not yet approved",
           "detail": "User has not completed login. Agent keeps polling."
         },
         {
           "step": 4,
+          "status": 202,
+          "label": "Poll — interacting",
+          "detail": "User has arrived at the resource's consent/login page; status=interacting. Agent stops prompting."
+        },
+        {
+          "step": 5,
           "status": 200,
           "label": "Approved",
           "detail": "User authenticated via OIDC. Resource issues opaque token."
@@ -212,14 +218,15 @@
         "step": 1,
         "from": "agent",
         "to": "resource",
-        "label": "Signed GET /data \u2192 202 + interaction URL (OIDC login)",
+        "label": "Signed GET /data → 202 + interaction URL (OIDC login)",
         "method": "GET",
         "url": "https://api.example/data",
         "request_headers": {
           "Host": "api.example",
-          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-          "Signature": "sig=:Hh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg:"
+          "Signature": "sig=:Hh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg:",
+          "Prefer": "wait=45"
         },
         "request_body": null,
         "response_status": 202,
@@ -262,9 +269,9 @@
         ],
         "signature": {
           "scheme": "jwt",
-          "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
           "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "covered_components": [
             "@method",
             "@authority",
@@ -274,9 +281,9 @@
         },
         "annotations": [
           "Resource verifies the agent's signature and identity.",
-          "Agent is not yet authorized \u2014 user must authenticate first.",
+          "Agent is not yet authorized — user must authenticate first.",
           "Resource returns 202 with AAuth-Requirement: requirement=interaction.",
-          "The interaction URL is the resource's own OIDC login page \u2014 no PS or AS is involved.",
+          "The interaction URL is the resource's own OIDC login page — no PS or AS is involved.",
           "The agent extracts the pending URL (Location) for polling and the interaction URL for the user."
         ],
         "is_response": false
@@ -285,11 +292,11 @@
         "step": 2,
         "from": "agent",
         "to": "resource",
-        "label": "Poll pending URL \u2192 202 still waiting",
+        "label": "Poll pending URL → 202 still waiting",
         "method": "GET",
         "url": "https://api.example/pending/c3e1f2a4b8d90675",
         "request_headers": {
-          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
           "Signature": "sig=:ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA:"
         },
@@ -306,7 +313,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -341,7 +348,7 @@
         "step": 3,
         "from": "user",
         "to": "resource",
-        "label": "User opens interaction URL \u2192 OIDC login \u2192 approves",
+        "label": "User opens interaction URL → OIDC login → approves",
         "method": "GET",
         "url": "https://api.example/interact?code=c3e1f2a4b8d90675",
         "request_headers": {
@@ -367,11 +374,43 @@
         "step": 4,
         "from": "agent",
         "to": "resource",
-        "label": "Poll pending URL \u2192 200 + opaque token",
+        "label": "Poll pending URL → 202 interacting",
         "method": "GET",
         "url": "https://api.example/pending/c3e1f2a4b8d90675",
         "request_headers": {
-          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000030;alg=\"ed25519\"",
+          "Signature": "sig=:KiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKiorKior:"
+        },
+        "request_body": null,
+        "response_status": 202,
+        "response_headers": {
+          "Location": "https://api.example/pending/c3e1f2a4b8d90675",
+          "Retry-After": "2",
+          "Cache-Control": "no-store",
+          "Content-Type": "application/json"
+        },
+        "response_body": {
+          "status": "interacting"
+        },
+        "tokens": [],
+        "signature": null,
+        "annotations": [
+          "status=interacting: user has arrived at the resource's consent/login page.",
+          "Agent stops prompting and keeps polling.",
+          "Next 200 delivers the opaque access token after user completes login."
+        ],
+        "is_response": false
+      },
+      {
+        "step": 5,
+        "from": "agent",
+        "to": "resource",
+        "label": "Poll pending URL → 200 + opaque token",
+        "method": "GET",
+        "url": "https://api.example/pending/c3e1f2a4b8d90675",
+        "request_headers": {
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
           "Signature": "sig=:ISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhISEhIQ:"
         },
@@ -389,7 +428,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -417,22 +456,22 @@
         "signature": null,
         "annotations": [
           "User has authenticated. Resource issues opaque AAuth-Access token.",
-          "The opaque token encodes the resource's own session \u2014 backed by the OIDC token it obtained.",
+          "The opaque token encodes the resource's own session — backed by the OIDC token it obtained.",
           "The agent receives the token and can now use it on all subsequent requests."
         ],
         "is_response": false
       },
       {
-        "step": 5,
+        "step": 6,
         "from": "agent",
         "to": "resource",
-        "label": "Subsequent request with opaque token (signed) \u2192 200",
+        "label": "Subsequent request with opaque token (signed) → 200",
         "method": "GET",
         "url": "https://api.example/data",
         "request_headers": {
           "Host": "api.example",
           "Authorization": "AAuth rm-tok-d7b2e9f1c4a30587",
-          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
           "Signature": "sig=:IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIg:"
         },
@@ -449,7 +488,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -476,9 +515,9 @@
         ],
         "signature": {
           "scheme": "jwt",
-          "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"authorization\": AAuth rm-tok-d7b2e9f1c4a30587\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"authorization\": AAuth rm-tok-d7b2e9f1c4a30587\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
           "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"authorization\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
           "covered_components": [
             "@method",
             "@authority",
@@ -489,9 +528,9 @@
         },
         "annotations": [
           "Agent presents the opaque token via Authorization: AAuth <token>.",
-          "Agent MUST include 'authorization' in the HTTP signature covered components \u2014 binds the opaque token to the signed request.",
+          "Agent MUST include 'authorization' in the HTTP signature covered components — binds the opaque token to the signed request.",
           "Resource validates the signature and looks up the token in its own store.",
-          "No PS, no AS \u2014 entirely self-contained within the resource."
+          "No PS, no AS — entirely self-contained within the resource."
         ],
         "is_response": false
       }

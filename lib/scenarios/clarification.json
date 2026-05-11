@@ -34,25 +34,25 @@
         "step": 2,
         "status": 202,
         "label": "Clarification required",
-        "detail": "AS poses a question before showing consent UI to the user"
+        "detail": "AS returns requirement=clarification; question is in the response body, not the header."
       },
       {
         "step": 3,
         "status": 202,
         "label": "Clarification answered",
-        "detail": "Agent answers; AS now needs user consent with richer context"
+        "detail": "Agent POSTs clarification_response; AS transitions to requirement=interaction for user consent."
       },
       {
         "step": 4,
-        "status": 200,
-        "label": "User approves with context",
-        "detail": "User sees agent identity, scope, and clarification Q&A in consent UI"
+        "status": 202,
+        "label": "Poll — interacting",
+        "detail": "User has arrived at the consent page (with clarification context); status=interacting."
       },
       {
-        "step": 5,
+        "step": 6,
         "status": 200,
         "label": "Auth token issued",
-        "detail": "Agent polls and receives auth token after user approval"
+        "detail": "User approved; agent polls and receives the auth token."
       }
     ]
   },
@@ -160,7 +160,8 @@
         "Content-Type": "application/json",
         "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:W1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tb:"
+        "Signature": "sig=:W1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tb:",
+        "Prefer": "wait=45"
       },
       "request_body": {
         "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
@@ -170,10 +171,12 @@
         "Location": "https://as.example/pending/c7a2f1b4e3d09865",
         "Retry-After": "0",
         "Cache-Control": "no-store",
-        "AAuth-Requirement": "requirement=clarification; question=\"What specific data will you read from this resource, and why?\""
+        "AAuth-Requirement": "requirement=clarification"
       },
       "response_body": {
-        "status": "pending"
+        "status": "pending",
+        "clarification": "What specific data will you read from this resource, and why?",
+        "timeout": 120
       },
       "tokens": [
         {
@@ -241,9 +244,9 @@
       },
       "annotations": [
         "Agent submits the resource token signed with its agent token.",
-        "AS sees AAuth-Capabilities: clarification in the request and poses a question.",
-        "AAuth-Requirement: requirement=clarification carries the question text.",
-        "Location header gives the pending URL. Agent must POST its answer there."
+        "AS sees AAuth-Capabilities: clarification and poses a question in the response body.",
+        "AAuth-Requirement: requirement=clarification; the question text is in the body, not the header.",
+        "Location header gives the pending URL. Agent must POST its clarification_response there."
       ],
       "is_response": false
     },
@@ -268,7 +271,7 @@
         "Location": "https://as.example/pending/c7a2f1b4e3d09865",
         "Retry-After": "2",
         "Cache-Control": "no-store",
-        "AAuth-Requirement": "requirement=interaction; url=\"https://as.example/interact?code=C7A2-F1B4\"; code=\"C7A2-F1B4\""
+        "AAuth-Requirement": "requirement=interaction; url=\"https://as.example/interact\"; code=\"C7A2-F1B4\""
       },
       "response_body": {
         "status": "pending"
@@ -285,6 +288,38 @@
     },
     {
       "step": 4,
+      "from": "agent",
+      "to": "as",
+      "label": "Poll pending URL → 202 interacting",
+      "method": "GET",
+      "url": "https://as.example/pending/c7a2f1b4e3d09865",
+      "request_headers": {
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000030;alg=\"ed25519\"",
+        "Signature": "sig=:XFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxdXFxd:"
+      },
+      "request_body": null,
+      "response_status": 202,
+      "response_headers": {
+        "Location": "https://as.example/pending/c7a2f1b4e3d09865",
+        "Retry-After": "2",
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "status": "interacting"
+      },
+      "tokens": [],
+      "signature": null,
+      "annotations": [
+        "status=interacting: the user has arrived at the consent page and is reviewing the clarification context.",
+        "Agent MUST stop re-prompting the user — they are already engaged.",
+        "Continue polling; the next 200 delivers the auth token once the user approves."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 5,
       "from": "user",
       "to": "as",
       "label": "User reviews clarification context → approves",
@@ -309,7 +344,7 @@
       "is_response": false
     },
     {
-      "step": 5,
+      "step": 6,
       "from": "agent",
       "to": "as",
       "label": "Poll pending URL → 200 + auth token",

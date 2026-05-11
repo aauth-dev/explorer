@@ -1,8 +1,8 @@
 {
   "id": "user-delegation",
-  "title": "User Delegation \u2014 Deferred Authorization",
+  "title": "User Delegation — Deferred Authorization",
   "description": "The Access Server requires user consent before issuing an auth token. It returns 202 Accepted with a pending URL (for polling) and an interaction URL (for the user to visit). Agent polls while user approves in a browser.",
-  "spec_section": "\u00a7 User Delegation",
+  "spec_section": "§ User Delegation",
   "category": "access",
   "demo_phase": 4,
   "participants": [
@@ -80,13 +80,13 @@
       "accent": "auth",
       "events": [
         {
-          "step": 7,
+          "step": 8,
           "participant": "as",
           "label": "Released after user approval",
           "kind": "issued"
         },
         {
-          "step": 8,
+          "step": 9,
           "participant": "agent",
           "label": "Presented to the resource",
           "kind": "presented"
@@ -101,19 +101,25 @@
         "step": 4,
         "status": 202,
         "label": "Initial deferred response",
-        "detail": "AS returns pending and interaction URLs."
+        "detail": "AS returns Location (pending URL) and AAuth-Requirement (interaction URL + code)."
       },
       {
         "step": 5,
         "status": 202,
-        "label": "First poll",
-        "detail": "User has not approved yet; keep polling the pending URL."
+        "label": "First poll — pending",
+        "detail": "User has not yet visited the interaction URL; status=pending."
       },
       {
         "step": 7,
+        "status": 202,
+        "label": "Second poll — interacting",
+        "detail": "User has arrived at the consent page; status=interacting. Stop prompting."
+      },
+      {
+        "step": 8,
         "status": 200,
-        "label": "Approved",
-        "detail": "After consent, the next poll returns the auth token."
+        "label": "Final poll — approved",
+        "detail": "User clicked Approve; AS releases the auth token."
       }
     ]
   },
@@ -122,7 +128,7 @@
       "step": 1,
       "from": "agent",
       "to": "resource",
-      "label": "GET /data-auth \u2192 401 + resource token",
+      "label": "GET /data-auth → 401 + resource token",
       "method": "GET",
       "url": "https://api.example/data-auth",
       "request_headers": {
@@ -134,7 +140,7 @@
       "request_body": null,
       "response_status": 401,
       "response_headers": {
-        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw\u2026\""
+        "AAuth-Requirement": "requirement=auth_token; resource_token=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlw…\""
       },
       "response_body": {
         "error": "auth_token_required"
@@ -192,7 +198,8 @@
         "Content-Type": "application/json",
         "Signature-Key": "sig=jwks_uri;id=\"https://agent.example\";kid=\"agent-key-1\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:FRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFQ:"
+        "Signature": "sig=:FRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFQ:",
+        "Prefer": "wait=45"
       },
       "request_body": {
         "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDIiLCJhdWQiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDMiLCJkd2siOiJhYXV0aC1yZXNvdXJjZS5qc29uIiwianRpIjoiMTJhNjM2ZDAtYTg1Mi00MGE5LTkxMjQtMjA4N2UwZDdmMDY2IiwiYWdlbnQiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJhZ2VudF9qa3QiOiIxRk53eGhWMDlaMnFneXBaN3dIS0M0bGdhX2c1ekVZdVE0bDlMQlZkc3pnIiwic2NvcGUiOiJyZWFkIHdyaXRlIiwiaWF0IjoxNzc2MjI0NTAxLCJleHAiOjE3NzYyMjUxMDF9.eLx4tCiLfz1HSXlmxSgPw1578Zbay-91vfiRog00OsBz7El98IWlSqBQG7Qi37zu-7laTJz6Q5md5plgO3_vDw"
@@ -246,7 +253,8 @@
         "Content-Type": "application/json",
         "Signature-Key": "sig=jwks_uri;id=\"https://ps.example\";kid=\"ps-key-1\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFg:"
+        "Signature": "sig=:FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFg:",
+        "Prefer": "wait=45"
       },
       "request_body": {
         "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDIiLCJhdWQiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDMiLCJkd2siOiJhYXV0aC1yZXNvdXJjZS5qc29uIiwianRpIjoiMTJhNjM2ZDAtYTg1Mi00MGE5LTkxMjQtMjA4N2UwZDdmMDY2IiwiYWdlbnQiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJhZ2VudF9qa3QiOiIxRk53eGhWMDlaMnFneXBaN3dIS0M0bGdhX2c1ekVZdVE0bDlMQlZkc3pnIiwic2NvcGUiOiJyZWFkIHdyaXRlIiwiaWF0IjoxNzc2MjI0NTAxLCJleHAiOjE3NzYyMjUxMDF9.eLx4tCiLfz1HSXlmxSgPw1578Zbay-91vfiRog00OsBz7El98IWlSqBQG7Qi37zu-7laTJz6Q5md5plgO3_vDw",
@@ -254,12 +262,14 @@
       },
       "response_status": 202,
       "response_headers": {
-        "Content-Type": "application/json"
+        "Location": "https://as.example/pending/a3f8c2d1e94b7065",
+        "Retry-After": "0",
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://as.example/interact\"; code=\"a3f8c2d1e94b7065\""
       },
       "response_body": {
-        "pending": "https://as.example/pending/a3f8c2d1e94b7065",
-        "interaction": "https://as.example/interact?code=a3f8c2d1e94b7065",
-        "expires_in": 600
+        "status": "pending"
       },
       "tokens": [
         {
@@ -316,8 +326,8 @@
       "signature": null,
       "annotations": [
         "PS signs with its own jwks_uri identity while calling the AS token endpoint.",
-        "AS validates the trusted PS, inspects the resource token, and defers the decision.",
-        "Instead of minting an auth token immediately, the AS returns 202 + pending URL + interaction URL."
+        "AS defers the decision: Location header carries the pending URL; AAuth-Requirement carries the interaction URL and code.",
+        "Body is simply { \"status\": \"pending\" } — URLs travel in headers, not the body."
       ],
       "is_response": false
     },
@@ -325,33 +335,36 @@
       "step": 4,
       "from": "as",
       "to": "ps",
-      "label": "AS returns 202 \u2192 PS \u2192 Agent",
+      "label": "AS returns 202 → PS → Agent",
       "method": "POST",
       "url": "https://ps.example/token",
       "request_headers": {
-        "Content-Type": "application/json"
+        "Location": "https://as.example/pending/a3f8c2d1e94b7065",
+        "Retry-After": "0",
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://as.example/interact\"; code=\"a3f8c2d1e94b7065\""
       },
       "request_body": {
-        "pending": "https://as.example/pending/a3f8c2d1e94b7065",
-        "interaction": "https://as.example/interact?code=a3f8c2d1e94b7065",
-        "expires_in": 600
+        "status": "pending"
       },
       "response_status": 202,
       "response_headers": {
-        "Content-Type": "application/json"
+        "Location": "https://as.example/pending/a3f8c2d1e94b7065",
+        "Retry-After": "0",
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://as.example/interact\"; code=\"a3f8c2d1e94b7065\""
       },
       "response_body": {
-        "pending": "https://as.example/pending/a3f8c2d1e94b7065",
-        "interaction": "https://as.example/interact?code=a3f8c2d1e94b7065",
-        "expires_in": 600
+        "status": "pending"
       },
       "tokens": [],
       "signature": null,
       "annotations": [
-        "The PS propagates the deferred response back to the agent unchanged.",
-        "This is the body the UI needs to highlight: {pending, interaction, expires_in}.",
-        "pending: https://as.example/pending/a3f8c2d1e94b7065",
-        "interaction: https://as.example/interact?code=a3f8c2d1e94b7065"
+        "PS propagates the AS's deferred response back to the agent.",
+        "Location header gives the pending URL to poll; AAuth-Requirement carries the interaction URL.",
+        "Body is simply { \"status\": \"pending\" } — URLs travel in headers, not the body."
       ],
       "is_response": false
     },
@@ -359,7 +372,7 @@
       "step": 5,
       "from": "agent",
       "to": "ps",
-      "label": "Poll pending URL \u2192 202 still pending",
+      "label": "Poll pending URL → 202 still pending",
       "method": "GET",
       "url": "https://as.example/pending/a3f8c2d1e94b7065",
       "request_headers": {
@@ -370,17 +383,19 @@
       "request_body": null,
       "response_status": 202,
       "response_headers": {
+        "Location": "https://as.example/pending/a3f8c2d1e94b7065",
+        "Retry-After": "2",
+        "Cache-Control": "no-store",
         "Content-Type": "application/json"
       },
       "response_body": {
-        "pending": "https://as.example/pending/a3f8c2d1e94b7065",
-        "status": "waiting_for_user"
+        "status": "pending"
       },
       "tokens": [],
       "signature": null,
       "annotations": [
-        "The agent can poll immediately, but the request is still waiting on user consent.",
-        "This gives the second 202 in the 202 \u2192 202 \u2192 200 progression."
+        "Agent GETs the pending URL, respecting the Retry-After: 2 interval.",
+        "AS returns 202 with status=pending — user has not yet visited the interaction URL."
       ],
       "is_response": false
     },
@@ -388,7 +403,7 @@
       "step": 6,
       "from": "user",
       "to": "as",
-      "label": "User opens interaction URL \u2192 grants consent",
+      "label": "User opens interaction URL → grants consent",
       "method": "GET",
       "url": "https://as.example/interact?code=a3f8c2d1e94b7065",
       "request_headers": {
@@ -412,8 +427,40 @@
     {
       "step": 7,
       "from": "agent",
+      "to": "as",
+      "label": "Poll pending URL → 202 interacting",
+      "method": "GET",
+      "url": "https://as.example/pending/a3f8c2d1e94b7065",
+      "request_headers": {
+        "Signature-Key": "sig=jwks_uri;id=\"https://agent.example\";kid=\"agent-key-1\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000030;alg=\"ed25519\"",
+        "Signature": "sig=:HxgYGRoaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9Q:"
+      },
+      "request_body": null,
+      "response_status": 202,
+      "response_headers": {
+        "Location": "https://as.example/pending/a3f8c2d1e94b7065",
+        "Retry-After": "2",
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "status": "interacting"
+      },
+      "tokens": [],
+      "signature": null,
+      "annotations": [
+        "status=interacting: the user has arrived at the consent page.",
+        "Agent MUST stop re-prompting the user — they are already engaged with the consent UI.",
+        "Continue polling; the next 200 delivers the auth token once the user clicks Approve."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 8,
+      "from": "agent",
       "to": "ps",
-      "label": "Poll pending URL \u2192 200 + auth token",
+      "label": "Poll pending URL → 200 + auth token",
       "method": "GET",
       "url": "https://as.example/pending/a3f8c2d1e94b7065",
       "request_headers": {
@@ -471,14 +518,14 @@
       "is_response": false
     },
     {
-      "step": 8,
+      "step": 9,
       "from": "agent",
       "to": "resource",
-      "label": "Retry with auth token \u2192 200",
+      "label": "Retry with auth token → 200",
       "method": "GET",
       "url": "https://api.example/data-auth",
       "request_headers": {
-        "AAuth-Access": "token=eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0x\u2026",
+        "AAuth-Access": "token=eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0x…",
         "Signature-Key": "sig=jwks_uri;id=\"https://agent.example\";kid=\"agent-key-1\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:GRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGQ:"
