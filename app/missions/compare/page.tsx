@@ -205,6 +205,9 @@ export default function MissionsComparePage() {
           <Link href="/missions/completion" className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
             Mission Completion <ArrowRight className="h-3 w-3" />
           </Link>
+          <Link href="/missions/permission" className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Permission Endpoint <ArrowRight className="h-3 w-3" />
+          </Link>
           <Link href="/missions/audit" className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
             Audit Endpoint <ArrowRight className="h-3 w-3" />
           </Link>

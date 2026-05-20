@@ -143,6 +143,8 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
   const description = variantData?.description ?? scenario.description;
   const tokenFlow = variantData?.token_flow ?? scenario.token_flow;
   const deferredTimeline = variantData?.deferred_timeline ?? scenario.deferred_timeline;
+  const missionBlob = variantData?.mission_blob ?? scenario.mission_blob;
+  const variantLabels = scenario.variant_labels ?? { autonomous: "Autonomous", interactive: "With User Approval" };
 
   const step = steps[currentStep];
   const stepLabels = steps.map((s) => s.label);
@@ -179,7 +181,7 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    Autonomous
+                    {variantLabels.autonomous}
                   </button>
                   <button
                     onClick={() => setActiveVariant("interactive")}
@@ -190,7 +192,7 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    With User Approval
+                    {variantLabels.interactive}
                   </button>
                 </div>
               )}
@@ -376,7 +378,7 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                     />
                   )}
 
-                  {scenario.mission_blob && <MissionBlobViewer mission={scenario.mission_blob} />}
+                  {missionBlob && <MissionBlobViewer mission={missionBlob} />}
 
                   {scenario.s256_chain && scenario.s256_chain.length > 0 && (
                     <S256ChainVisualization links={scenario.s256_chain} />

@@ -138,6 +138,7 @@ export interface ScenarioVariant {
   steps: ProtocolStep[];
   token_flow?: TokenFlow[];
   deferred_timeline?: DeferredTimeline;
+  mission_blob?: MissionBlobData;
 }
 
 export interface Scenario {
@@ -155,6 +156,8 @@ export interface Scenario {
   s256_chain?: S256ChainLink[];
   /** Optional interactive/user-approval variant of this scenario */
   interactive?: ScenarioVariant;
+  /** Override the variant toggle button labels. Defaults to "Autonomous" / "With User Approval". */
+  variant_labels?: { autonomous: string; interactive: string };
 }
 
 // ─── Navigation ───────────────────────────────────────────────────────────────

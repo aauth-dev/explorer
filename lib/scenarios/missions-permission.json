@@ -1,0 +1,601 @@
+{
+  "id": "missions-permission",
+  "title": "Permission Endpoint",
+  "description": "The permission endpoint enables agents to request permission from the PS for actions **not governed by a remote resource** — tool calls, file writes, sending messages on behalf of the user. The spec says this MAY be used **with or without a mission** (§1015), and the without-mission case is the more important pitch: it lets the PS govern agent behavior **before any resources support AAuth**, giving users one chokepoint that sees every sensitive local action. The PS decides each request against its standing user policy and, if needed, defers to the user via the same `202 + AAuth-Requirement: interaction` pattern other AAuth endpoints use. Only `action` is required (§1025); `description`, `parameters`, and `mission` are optional. Toggle **With Mission** above to see how `approved_tools` (§1303) bypasses the endpoint entirely and how the request binds to a mission log.",
+  "spec_section": "§ Permission Endpoint",
+  "category": "missions",
+  "demo_phase": 13,
+  "variant_labels": {
+    "autonomous": "Without Mission",
+    "interactive": "With Mission"
+  },
+  "participants": [
+    {
+      "id": "agent",
+      "label": "Agent",
+      "type": "agent"
+    },
+    {
+      "id": "ps",
+      "label": "Person Server",
+      "type": "person-server"
+    },
+    {
+      "id": "user",
+      "label": "User",
+      "type": "user"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /permission (SendEmail) → 200 granted by standing policy",
+      "method": "POST",
+      "url": "https://ps.example/permission",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:Tk9NSVNTSU9OU0VOREVNQUlMR1JBTlRFRFBPTElDWUFMTE9XU09XTkRPTUFJTlNJR05BVFVSRUJZVEVTMQ==:"
+      },
+      "request_body": {
+        "action": "SendEmail",
+        "description": "Email the draft Q2 wrap-up to the user's own address.",
+        "parameters": {
+          "to": "user@example.com",
+          "subject": "Draft: Q2 wrap-up"
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "permission": "granted"
+      },
+      "tokens": [
+        {
+          "name": "Agent Token",
+          "typ": "aa-agent+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "agent-key-1",
+            "typ": "aa-agent+jwt"
+          },
+          "payload": {
+            "iss": "https://agent.example",
+            "sub": "aauth:local@agent.example",
+            "dwk": "aauth-agent.json",
+            "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                "kid": "agent-key-1"
+              }
+            },
+            "iat": 1776222894,
+            "exp": 1776226494,
+            "ps": "https://ps.example"
+          },
+          "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
+        }
+      ],
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /permission\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "signature-key"
+        ]
+      },
+      "annotations": [
+        "Agent signs the request with its agent token via Signature-Key: sig=jwt (§1021). No mission is bound — the request body has no `mission` field.",
+        "Only `action` is required (§1025). `description` and `parameters` are optional but recommended so the PS (and the user, if asked) can see what's being attempted.",
+        "Without a mission, the PS evaluates against the user's **standing policy** at the PS — \"always allow SendEmail to my own domain\" is a reasonable default.",
+        "PS decides immediately and returns 200 `permission: \"granted\"` (§1055, §1068). PS SHOULD still record the request even without a mission (§1075)."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /permission (PublishToSocial) → 202 (no policy match — defer to user)",
+      "method": "POST",
+      "url": "https://ps.example/permission",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:Tk9NSVNTSU9OUFVCTElTSFRPU09DSUFMREVGRVJUT1VTRVJTSUdOQVRVUkVCWVRFU1RXTw==:"
+      },
+      "request_body": {
+        "action": "PublishToSocial",
+        "description": "Post a short summary of the Q2 highlights to the company LinkedIn page.",
+        "parameters": {
+          "channel": "linkedin",
+          "text": "Q2 highlights — see thread for the top three themes…"
+        }
+      },
+      "response_status": 202,
+      "response_headers": {
+        "Location": "https://ps.example/pending/p9c4e1a2",
+        "Retry-After": "2",
+        "Cache-Control": "no-store",
+        "AAuth-Requirement": "requirement=interaction; url=\"https://ps.example/interact/p9c4e1a2\"; code=\"PUB7-LK29\""
+      },
+      "response_body": {
+        "status": "pending"
+      },
+      "tokens": [],
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /permission\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "signature-key"
+        ]
+      },
+      "annotations": [
+        "No matching standing policy → the PS cannot decide alone and uses the standard deferred-response pattern (§1073).",
+        "Same `202 + AAuth-Requirement: interaction` shape the token endpoint uses for consent — the agent doesn't need a new state machine.",
+        "`Location` is the pending URL the agent polls; `url` + `code` in AAuth-Requirement point the user at the consent page (step 3).",
+        "Agent waits Retry-After seconds before polling."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 3,
+      "from": "user",
+      "to": "ps",
+      "label": "User opens interaction URL → consent page",
+      "method": "GET",
+      "url": "https://ps.example/interact/p9c4e1a2?code=PUB7-LK29",
+      "request_headers": {
+        "Host": "ps.example"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "text/html"
+      },
+      "response_body": "<div class=\"consent-page\"><h1>Agent requests permission to perform an action</h1><p>The agent <strong>aauth:local@agent.example</strong> is asking to perform:</p><ul><li><strong>action:</strong> <code>PublishToSocial</code></li><li><strong>channel:</strong> linkedin</li><li><strong>preview:</strong> &ldquo;Q2 highlights — see thread for the top three themes…&rdquo;</li></ul><p>You have no standing rule for this action. Allow it?</p><div class=\"actions\"><button class=\"approve\">Approve once</button><button class=\"approve-rule\">Approve &amp; remember (add standing rule)</button><button class=\"deny\">Deny</button></div></div>",
+      "tokens": [],
+      "signature": null,
+      "annotations": [
+        "PS renders the consent page from the `code` in step 2's AAuth-Requirement header.",
+        "Without a mission, the \"approve & remember\" affordance is how users build up standing policy over time — next time PublishToSocial comes in, it'll be granted in step 1.",
+        "Clarification chat (§912) MAY happen here if the user wants to ask the agent why it needs this."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 4,
+      "from": "agent",
+      "to": "ps",
+      "label": "GET /pending/p9c4e1a2 → 200 granted",
+      "method": "GET",
+      "url": "https://ps.example/pending/p9c4e1a2",
+      "request_headers": {
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:UE9MTFBFTkRJTkdVUkxOT01JU1NJT05GTE9XU0lHTkVEV0lUSEFHRU5US0VZUE9MTElOR0xPT1A=:"
+      },
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "permission": "granted"
+      },
+      "tokens": [],
+      "signature": null,
+      "annotations": [
+        "Polling at the pending URL follows the same pattern as the token endpoint — signed GET with the agent's key.",
+        "Once the user approves at the consent page, the next poll returns the final `permission: \"granted\"` response (§1068).",
+        "Agent now SHOULD perform the action and MAY log it. Without a mission there's no mission log, but the PS may still keep its own audit trail of permission decisions (§1075)."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 5,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /permission (DeleteAllRecords) → 200 denied by standing policy",
+      "method": "POST",
+      "url": "https://ps.example/permission",
+      "request_headers": {
+        "Content-Type": "application/json",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:REVOSUFMTk9NSVNTSU9OREVMRVRFQUxMUkVDT1JEU0RFTU9TVEFORElOR1BPTElDWURFTllTSUdO:"
+      },
+      "request_body": {
+        "action": "DeleteAllRecords",
+        "description": "Clear the raw Q2 feedback table.",
+        "parameters": {
+          "table": "feedback_q2_raw",
+          "rows": "all"
+        }
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "permission": "denied",
+        "reason": "Destructive bulk operations are blocked by your standing policy. The agent should ask for a narrower action, or you can lift this rule in PS settings."
+      },
+      "tokens": [],
+      "signature": null,
+      "annotations": [
+        "PS can deny without bothering the user when standing policy explicitly forbids the action (§1069).",
+        "`reason` is a Markdown string the agent can surface to its user or log (§1069).",
+        "This is the value prop of the no-mission case: a single chokepoint where the user pre-declares \"never let any agent do X\" and the PS enforces it."
+      ],
+      "is_response": false
+    }
+  ],
+  "deferred_timeline": {
+    "title": "Permission Flow (No Mission)",
+    "events": [
+      {
+        "step": 1,
+        "status": 200,
+        "label": "SendEmail granted by policy",
+        "detail": "Standing user policy allows email to own domain — PS decides alone"
+      },
+      {
+        "step": 2,
+        "status": 202,
+        "label": "PublishToSocial deferred",
+        "detail": "No matching policy → AAuth-Requirement: interaction"
+      },
+      {
+        "step": 3,
+        "status": 200,
+        "label": "User reviews & approves",
+        "detail": "Consent page rendered from the interaction code"
+      },
+      {
+        "step": 4,
+        "status": 200,
+        "label": "Polled response: granted",
+        "detail": "Pending URL now returns the final permission decision"
+      },
+      {
+        "step": 5,
+        "status": 200,
+        "label": "DeleteAllRecords denied",
+        "detail": "Standing policy forbids destructive bulk ops — denied with reason"
+      }
+    ]
+  },
+  "interactive": {
+    "description": "Same endpoint, now bound to an active mission. The mission's `approved_tools` (§1303) let the agent **skip /permission entirely** for FeedbackReader and ReportWriter. For anything else, the agent calls /permission with a `mission` field, and the PS evaluates against mission scope + log history (§1028) and records every request in the mission log (§1075). Compare with the no-mission flow on the left: the *shape* of the requests and responses is identical — the mission binding just changes the policy basis the PS uses.",
+    "participants": [
+      {
+        "id": "agent",
+        "label": "Agent",
+        "type": "agent"
+      },
+      {
+        "id": "ps",
+        "label": "Person Server",
+        "type": "person-server"
+      },
+      {
+        "id": "user",
+        "label": "User",
+        "type": "user"
+      }
+    ],
+    "mission_blob": {
+      "title": "Mission this permission flow runs under",
+      "description": "FeedbackReader and ReportWriter are pre-approved — the agent does NOT call /permission for those. Other actions (SendEmail, PublishToSocial, DeleteAllRecords) must be asked per-call.",
+      "markdown": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
+      "approver": "https://ps.example",
+      "agent": "aauth:local@agent.example",
+      "approved_at": "2026-04-14T17:14:54Z",
+      "approved_tools": [
+        {
+          "name": "FeedbackReader",
+          "description": "Read customer feedback records — pre-approved, no /permission call needed"
+        },
+        {
+          "name": "ReportWriter",
+          "description": "Write the summary report to the shared drive — pre-approved, no /permission call needed"
+        }
+      ],
+      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
+      "capabilities": [
+        "interaction",
+        "clarification"
+      ]
+    },
+    "steps": [
+      {
+        "step": 1,
+        "from": "agent",
+        "to": "ps",
+        "label": "POST /permission (SendEmail + mission) → 200 granted",
+        "method": "POST",
+        "url": "https://ps.example/permission",
+        "request_headers": {
+          "Content-Type": "application/json",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "Signature": "sig=:V0lUSE1JU1NJT05TRU5ERU1BSUxHUkFOVEVES05PV05BVURJRU5DRUFOREFGRkVDVFNNSVNTSU9OTE9HRk9P:"
+        },
+        "request_body": {
+          "action": "SendEmail",
+          "description": "Email the finished Q2 feedback summary to the user as an attachment.",
+          "parameters": {
+            "to": "user@example.com",
+            "subject": "Q2 customer feedback summary",
+            "attachment": "/drive/reports/q2-feedback-summary.pdf"
+          },
+          "mission": {
+            "approver": "https://ps.example",
+            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
+          }
+        },
+        "response_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json"
+        },
+        "response_body": {
+          "permission": "granted"
+        },
+        "tokens": [
+          {
+            "name": "Agent Token",
+            "typ": "aa-agent+jwt",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+            "header": {
+              "alg": "EdDSA",
+              "kid": "agent-key-1",
+              "typ": "aa-agent+jwt"
+            },
+            "payload": {
+              "iss": "https://agent.example",
+              "sub": "aauth:local@agent.example",
+              "dwk": "aauth-agent.json",
+              "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
+              "cnf": {
+                "jwk": {
+                  "kty": "OKP",
+                  "crv": "Ed25519",
+                  "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                  "kid": "agent-key-1"
+                }
+              },
+              "iat": 1776222894,
+              "exp": 1776226494,
+              "ps": "https://ps.example"
+            },
+            "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
+          }
+        ],
+        "signature": {
+          "scheme": "jwt",
+          "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /permission\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "covered_components": [
+            "@method",
+            "@authority",
+            "@path",
+            "signature-key"
+          ]
+        },
+        "annotations": [
+          "Agent signs the request with its agent token via Signature-Key: sig=jwt (§1021).",
+          "SendEmail is NOT in `approved_tools`, so the agent MUST ask (§1017). FeedbackReader / ReportWriter would have been used WITHOUT calling /permission.",
+          "Because a mission is bound, the PS evaluates against the mission's context and log history (§1028).",
+          "PS returns 200 `granted` (§1068) and records this request in the mission log (§1075)."
+        ],
+        "is_response": false
+      },
+      {
+        "step": 2,
+        "from": "agent",
+        "to": "ps",
+        "label": "POST /permission (PublishToSocial + mission) → 202 (user consent required)",
+        "method": "POST",
+        "url": "https://ps.example/permission",
+        "request_headers": {
+          "Content-Type": "application/json",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "Signature": "sig=:V0lUSE1JU1NJT05QVUJMSVNIVE9TT0NJQUxERUZFUlRPVVNFUlNJR05BVFVSRUJZVEVTVFdP:"
+        },
+        "request_body": {
+          "action": "PublishToSocial",
+          "description": "Post a short summary of the Q2 feedback highlights to the company LinkedIn page.",
+          "parameters": {
+            "channel": "linkedin",
+            "text": "Q2 customer feedback highlights — see thread for the top three themes…"
+          },
+          "mission": {
+            "approver": "https://ps.example",
+            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
+          }
+        },
+        "response_status": 202,
+        "response_headers": {
+          "Location": "https://ps.example/pending/p9c4e1a2",
+          "Retry-After": "2",
+          "Cache-Control": "no-store",
+          "AAuth-Requirement": "requirement=interaction; url=\"https://ps.example/interact/p9c4e1a2\"; code=\"PUB7-LK29\""
+        },
+        "response_body": {
+          "status": "pending"
+        },
+        "tokens": [],
+        "signature": {
+          "scheme": "jwt",
+          "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /permission\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "covered_components": [
+            "@method",
+            "@authority",
+            "@path",
+            "signature-key"
+          ]
+        },
+        "annotations": [
+          "Publishing externally is outside `approved_tools` AND outside the spirit of \"analyze and report internally,\" so the PS cannot decide alone.",
+          "Standard deferred-response pattern (§1073) — same shape as the no-mission case.",
+          "User consent prompt may include an \"add to approved_tools\" affordance — but that produces a NEW s256 (mission supersession, see Out-of-Bounds demo)."
+        ],
+        "is_response": false
+      },
+      {
+        "step": 3,
+        "from": "user",
+        "to": "ps",
+        "label": "User opens interaction URL → consent page (mission context shown)",
+        "method": "GET",
+        "url": "https://ps.example/interact/p9c4e1a2?code=PUB7-LK29",
+        "request_headers": {
+          "Host": "ps.example"
+        },
+        "request_body": null,
+        "response_status": 200,
+        "response_headers": {
+          "Content-Type": "text/html"
+        },
+        "response_body": "<div class=\"consent-page\"><h1>Agent requests permission to perform an action</h1><p>The agent <strong>aauth:local@agent.example</strong> is operating under the mission <em>Analyze Q2 Customer Feedback</em>.</p><p>It is asking to perform:</p><ul><li><strong>action:</strong> <code>PublishToSocial</code></li><li><strong>channel:</strong> linkedin</li><li><strong>preview:</strong> &ldquo;Q2 customer feedback highlights — see thread for the top three themes…&rdquo;</li></ul><p>This action was not pre-approved when you accepted the mission. Allow it?</p><div class=\"actions\"><button class=\"approve\">Approve once</button><button class=\"approve-add\">Approve &amp; add to approved tools</button><button class=\"deny\">Deny</button></div></div>",
+        "tokens": [],
+        "signature": null,
+        "annotations": [
+          "Same consent flow as the no-mission case — but the page surfaces the mission title so the user has full context.",
+          "\"Add to approved_tools\" extends the mission, which produces a NEW s256 (supersession). See Out-of-Bounds demo for that pattern."
+        ],
+        "is_response": false
+      },
+      {
+        "step": 4,
+        "from": "agent",
+        "to": "ps",
+        "label": "GET /pending/p9c4e1a2 → 200 granted",
+        "method": "GET",
+        "url": "https://ps.example/pending/p9c4e1a2",
+        "request_headers": {
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "Signature": "sig=:UE9MTFBFTkRJTkdVUkxXSVRITUlTU0lPTkZMT1dTSUdORURXSVRIQUdFTlRLRVlQT0xMSU5HTE9PUFNFR1g=:"
+        },
+        "request_body": null,
+        "response_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json"
+        },
+        "response_body": {
+          "permission": "granted"
+        },
+        "tokens": [],
+        "signature": null,
+        "annotations": [
+          "Polling pattern is identical to the no-mission case — same pending URL semantics.",
+          "Final response: `permission: \"granted\"`. The original request, the user's decision, and this response are all recorded in the mission log (§1075).",
+          "Agent SHOULD now perform the action and call /audit to log the outcome — see Audit Endpoint demo."
+        ],
+        "is_response": false
+      },
+      {
+        "step": 5,
+        "from": "agent",
+        "to": "ps",
+        "label": "POST /permission (DeleteAllRecords + mission) → 200 denied (out-of-scope)",
+        "method": "POST",
+        "url": "https://ps.example/permission",
+        "request_headers": {
+          "Content-Type": "application/json",
+          "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+          "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+          "Signature": "sig=:V0lUSE1JU1NJT05ERUxFVEVBTExSRUNPUkRTREVOSUVET1VUT0ZTQ09QRVBPTElDWVNJR05DUlVOQ0g=:"
+        },
+        "request_body": {
+          "action": "DeleteAllRecords",
+          "description": "Clear the raw Q2 feedback table after the report is published.",
+          "parameters": {
+            "table": "feedback_q2_raw",
+            "rows": "all"
+          },
+          "mission": {
+            "approver": "https://ps.example",
+            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
+          }
+        },
+        "response_status": 200,
+        "response_headers": {
+          "Content-Type": "application/json"
+        },
+        "response_body": {
+          "permission": "denied",
+          "reason": "Destructive operations on source data are outside this mission's scope. The mission authorized **read + summarize**, not **delete**. Propose a new mission if cleanup is required."
+        },
+        "tokens": [],
+        "signature": null,
+        "annotations": [
+          "With a mission bound, the PS has a much sharper scope check: the mission authorized read+summarize, not destruction (§1069).",
+          "Contrast with the no-mission case where the same deny came from a standing rule. Same outcome, different policy basis.",
+          "If the mission were terminated, the PS would instead return a mission status error (§1071) — see the Audit Endpoint demo for the `mission_terminated` shape."
+        ],
+        "is_response": false
+      }
+    ],
+    "deferred_timeline": {
+      "title": "Permission Flow (With Mission)",
+      "events": [
+        {
+          "step": 1,
+          "status": 200,
+          "label": "SendEmail granted (mission-bound)",
+          "detail": "Outside approved_tools but within mission scope — PS decides, logs to mission"
+        },
+        {
+          "step": 2,
+          "status": 202,
+          "label": "PublishToSocial deferred",
+          "detail": "PS returns AAuth-Requirement: interaction — user consent needed"
+        },
+        {
+          "step": 3,
+          "status": 200,
+          "label": "User reviews & approves",
+          "detail": "Consent page shows the mission context"
+        },
+        {
+          "step": 4,
+          "status": 200,
+          "label": "Polled response: granted",
+          "detail": "Recorded in the mission log"
+        },
+        {
+          "step": 5,
+          "status": 200,
+          "label": "DeleteAllRecords denied (out-of-scope)",
+          "detail": "PS short-circuits — destructive action on a read-only mission"
+        }
+      ]
+    }
+  }
+}
