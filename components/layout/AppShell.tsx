@@ -7,7 +7,7 @@ import { Sidebar } from "./Sidebar";
 
 const EXT_LINKS = [
   { label: "AAuth.dev", href: "https://aauth.dev" },
-  { label: "Playground", href: "https://playground.aauth.dev" },
+  { label: "Web Agent Demo", href: "https://web-agent.aauth.dev" },
 ];
 
 function ExtLinkArrow() {
