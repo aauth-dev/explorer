@@ -1,8 +1,8 @@
 {
   "id": "missions-resource-access",
-  "title": "Resource Access",
-  "description": "After mission approval, the agent proactively requests a resource token via POST /authorize before accessing the resource. The AAuth-Mission header is included and aauth-mission is added to the signed HTTP Message Signature components (\u00a7588). The resource issues a four-party resource token with aud=AS, and the PS federates to the AS to exchange it for an auth token (iss=AS, dwk=aauth-access.json). The mission claim flows through the entire token chain \u2014 creating an end-to-end audit trail tied to the user-approved mission.",
-  "spec_section": "\u00a7 Proactive Resource Authorization",
+  "title": "Mission Context at a Resource",
+  "description": "How a mission reaches a resource in -11: the agent names the mission when it asks its PS for a person token, the PS stamps mission_s256 into that token, the resource copies it into the resource token it issues, and the issuer copies it into the auth token. There is no AAuth-Mission header — the mission is never agent-asserted, and a resource reads it only from a PS-issued token.",
+  "spec_section": "§ Mission Context at Resources",
   "category": "missions",
   "demo_phase": 10,
   "participants": [
@@ -29,11 +29,12 @@
   ],
   "mission_blob": {
     "title": "Mission Context",
-    "description": "Approved mission reused during proactive authorization.",
+    "description": "The approved mission this access is running under.",
     "markdown": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
     "approver": "https://ps.example",
     "agent": "aauth:local@agent.example",
     "approved_at": "2026-04-14T17:14:54Z",
+    "expires_at": "2026-05-14T17:14:54Z",
     "approved_tools": [
       {
         "name": "FeedbackReader",
@@ -44,7 +45,11 @@
         "description": "Write the summary report to the shared drive"
       }
     ],
-    "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
+    "approved_resources": [
+      "https://api.example"
+    ],
+    "encoded": "eyJhcHByb3ZlciI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImFnZW50IjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImFwcHJvdmVkX2F0IjoiMjAyNi0wNC0xNFQxNzoxNDo1NFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNS0xNFQxNzoxNDo1NFoiLCJkZXNjcmlwdGlvbiI6IiMgQW5hbHl6ZSBRMiBDdXN0b21lciBGZWVkYmFja1xuXG5SZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMgYW5kIHByb2R1Y2UgYSBzdW1tYXJ5IHJlcG9ydCB3aXRoIHNlbnRpbWVudCBhbmFseXNpcyBhbmQga2V5IHRoZW1lcy4iLCJhcHByb3ZlZF90b29scyI6W3sibmFtZSI6IkZlZWRiYWNrUmVhZGVyIiwiZGVzY3JpcHRpb24iOiJSZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMifSx7Im5hbWUiOiJSZXBvcnRXcml0ZXIiLCJkZXNjcmlwdGlvbiI6IldyaXRlIHRoZSBzdW1tYXJ5IHJlcG9ydCB0byB0aGUgc2hhcmVkIGRyaXZlIn1dLCJhcHByb3ZlZF9yZXNvdXJjZXMiOlsiaHR0cHM6Ly9hcGkuZXhhbXBsZSJdfQ",
+    "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
     "capabilities": [
       "interaction",
       "clarification"
@@ -52,19 +57,39 @@
   },
   "token_flow": [
     {
+      "token": "person-token",
+      "label": "Person Token",
+      "tokenType": "aa-person+jwt",
+      "accent": "auth",
+      "events": [
+        {
+          "step": 1,
+          "participant": "ps",
+          "label": "Issued with mission_s256 for this resource",
+          "kind": "issued"
+        },
+        {
+          "step": 2,
+          "participant": "resource",
+          "label": "Presented; mission_s256 copied into the resource token",
+          "kind": "presented"
+        }
+      ]
+    },
+    {
       "token": "resource-token",
       "label": "Resource Token",
       "tokenType": "aa-resource+jwt",
       "accent": "resource",
       "events": [
         {
-          "step": 1,
+          "step": 2,
           "participant": "resource",
-          "label": "Issued with mission claim (aud=AS)",
+          "label": "Issued with mission_s256 (aud=AS)",
           "kind": "issued"
         },
         {
-          "step": 2,
+          "step": 3,
           "participant": "agent",
           "label": "Forwarded to PS for exchange",
           "kind": "forwarded"
@@ -78,19 +103,19 @@
       "accent": "auth",
       "events": [
         {
-          "step": 3,
+          "step": 4,
           "participant": "as",
-          "label": "Minted with mission claim intact",
+          "label": "mission_s256 copied through unchanged",
           "kind": "issued"
         },
         {
-          "step": 4,
+          "step": 5,
           "participant": "agent",
           "label": "Delivered to agent by PS",
           "kind": "returned"
         },
         {
-          "step": 5,
+          "step": 6,
           "participant": "agent",
           "label": "Presented to the resource",
           "kind": "presented"
@@ -102,17 +127,99 @@
     {
       "step": 1,
       "from": "agent",
+      "to": "ps",
+      "label": "POST /person {resource, mission_s256} → mission-scoped person token",
+      "method": "POST",
+      "url": "https://ps.example/person",
+      "request_headers": {
+        "Host": "ps.example",
+        "Content-Type": "application/json",
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
+      },
+      "request_body": {
+        "resource": "https://api.example",
+        "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store"
+      },
+      "response_body": {
+        "person_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…",
+        "expires_in": 3600
+      },
+      "tokens": [
+        {
+          "name": "Person Token",
+          "typ": "aa-person+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJzdWIiOiI4ZjE0ZTQ1ZmNlZWExNjdhNWEzNmRlZGQ0YmVhMjU0MyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJqdGkiOiJwdC0zMmQ2NTMiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "ps-key-1",
+            "typ": "aa-person+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://api.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                "kid": "agent-key-1"
+              }
+            },
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "jti": "pt-32d653",
+            "iat": 1776222894,
+            "exp": 1776226494
+          },
+          "signature_b64": "cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ"
+        }
+      ],
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /person\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-type",
+          "content-digest",
+          "signature-key"
+        ]
+      },
+      "annotations": [
+        "The agent names the mission when it asks for a person token. This is where a mission enters the token chain in -11.",
+        "The PS MUST verify the mission exists, is active and belongs to this agent, and MUST reject the request otherwise.",
+        "The issued token carries mission_s256 and MUST NOT outlive the mission's expires_at.",
+        "A person token is scoped to one resource and one mission, so an agent working across several of either holds one per combination.",
+        "The agent may already hold this token: a mission proposal that named `resources` gets one back per approved resource in the approval response."
+      ],
+      "is_response": false
+    },
+    {
+      "step": 2,
+      "from": "agent",
       "to": "resource",
-      "label": "POST /authorize + AAuth-Mission \u2192 resource token",
+      "label": "POST /authorize with the mission-scoped person token → resource token",
       "method": "POST",
       "url": "https://api.example/authorize",
       "request_headers": {
+        "Host": "api.example",
         "Content-Type": "application/json",
-        "AAuth-Mission": "approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"",
-        "AAuth-Capabilities": "interaction, clarification",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:AQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQID:"
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": {
         "scope": "read"
@@ -122,13 +229,42 @@
         "Content-Type": "application/json"
       },
       "response_body": {
-        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026"
+        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
       },
       "tokens": [
         {
+          "name": "Person Token",
+          "typ": "aa-person+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJzdWIiOiI4ZjE0ZTQ1ZmNlZWExNjdhNWEzNmRlZGQ0YmVhMjU0MyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJqdGkiOiJwdC0zMmQ2NTMiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "ps-key-1",
+            "typ": "aa-person+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://api.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                "kid": "agent-key-1"
+              }
+            },
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "jti": "pt-32d653",
+            "iat": 1776222894,
+            "exp": 1776226494
+          },
+          "signature_b64": "cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ"
+        },
+        {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -136,25 +272,24 @@
           },
           "payload": {
             "iss": "https://api.example",
-            "aud": "https://as.example",
             "dwk": "aauth-resource.json",
+            "aud": "https://as.example",
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
-            "agent": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "person_token_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
             "iat": 1776222894,
-            "exp": 1776223494,
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "exp": 1776223494
           },
           "signature_b64": "ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw"
         },
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -162,8 +297,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -173,51 +308,53 @@
                 "kid": "agent-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1776222894,
-            "exp": 1776226494,
-            "ps": "https://ps.example"
+            "exp": 1776226494
           },
           "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": POST\n\"@authority\": api.example\n\"@path\": /authorize\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"aauth-mission\": approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_base": "\"@method\": POST\n\"@authority\": api.example\n\"@path\": /authorize\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
-          "signature-key",
-          "aauth-mission"
+          "content-type",
+          "content-digest",
+          "signature-key"
         ]
       },
       "annotations": [
-        "Agent proactively requests a resource token BEFORE accessing the resource.",
-        "AAuth-Mission header carries the approved mission reference (approver + s256).",
-        "aauth-mission is included in the signed components per \u00a7588.",
-        "AAuth-Capabilities is included on resource requests per \u00a71731 (SHOULD).",
-        "This is a four-party flow: resource issues token with aud=AS; agent must exchange via PS.",
-        "The aa-resource+jwt carries mission: {approver, s256} \u2014 first token in the chain."
+        "The agent presents the person token it obtained in step 1 — the resource MUST have verified one before it issues a resource token.",
+        "The mission arrives inside that token as mission_s256. There is no AAuth-Mission header in -11: the header and its IANA registration were both removed.",
+        "The resource does not have the mission description or the tool list. Only the PS has those. It copies mission_s256 across verbatim without judging it.",
+        "This is a four-party flow: the resource issues aud=AS. The resource token carries mission_s256, ps, sub and person_token_jti.",
+        "mission_s256 is REQUIRED in the resource token when the person token carried one — a resource MUST NOT omit it."
       ],
       "is_response": false
     },
     {
-      "step": 2,
+      "step": 3,
       "from": "agent",
       "to": "ps",
-      "label": "POST /token (request) \u2014 PS will federate to AS",
+      "label": "POST resource token to PS /auth-token",
       "method": "POST",
-      "url": "https://ps.example/token",
+      "url": "https://ps.example/auth-token",
       "request_headers": {
+        "Host": "ps.example",
         "Content-Type": "application/json",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:AgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgME:"
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": {
-        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026"
+        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
       },
       "response_status": 202,
       "response_headers": {
@@ -225,13 +362,13 @@
       },
       "response_body": {
         "status": "federating",
-        "detail": "PS is calling the AS to mint the auth token; see step 3 for the PS\u2192AS federation."
+        "detail": "PS is calling the AS to mint the auth token; see step 3 for the PS→AS federation."
       },
       "tokens": [
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -239,49 +376,51 @@
           },
           "payload": {
             "iss": "https://api.example",
-            "aud": "https://as.example",
             "dwk": "aauth-resource.json",
+            "aud": "https://as.example",
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
-            "agent": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "person_token_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
             "iat": 1776222894,
-            "exp": 1776223494,
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "exp": 1776223494
           },
           "signature_b64": "ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /token\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /auth-token\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
+          "content-type",
+          "content-digest",
           "signature-key"
         ]
       },
       "annotations": [
-        "Agent submits the mission-bound resource token to the PS token endpoint.",
-        "AAuth-Capabilities is NOT sent here \u2014 PS endpoints do not use it (\u00a71731).",
-        "PS holds the request open while it federates with the AS (see step 3).",
-        "No agent-visible response yet \u2014 this completes after the AS mints the auth token."
+        "The agent submits the mission-bound resource token to its PS's auth_token_endpoint, signing with its own agent token.",
+        "The PS looks up the person token named by person_token_jti and verifies ps, sub, mission_s256 and tenant match it exactly.",
+        "That lookup is what makes mission stripping detectable. Comparing claims alone would not: an agent running concurrent missions holds several person tokens for the same resource, so \"the person token for this agent and resource\" does not identify one.",
+        "The PS also verifies the mission is active and that now precedes its expires_at.",
+        "The PS holds the request open while it federates with the AS (step 4)."
       ],
       "is_response": false
     },
     {
-      "step": 3,
+      "step": 4,
       "from": "ps",
       "to": "as",
-      "label": "PS \u2192 AS federation \u2192 auth token minted",
+      "label": "PS → AS federation → auth token minted",
       "method": "POST",
-      "url": "https://as.example/token",
+      "url": "https://as.example/auth-token",
       "request_headers": {
         "Content-Type": "application/json",
         "Signature-Key": "sig=jwks_uri;id=\"https://ps.example\";kid=\"ps-key-1\";dwk=\"aauth-person.json\"",
@@ -289,21 +428,21 @@
         "Signature": "sig=:AwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+Pw::"
       },
       "request_body": {
-        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026"
+        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
       },
       "response_status": 200,
       "response_headers": {
         "Content-Type": "application/json"
       },
       "response_body": {
-        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
         "expires_in": 3600
       },
       "tokens": [
         {
           "name": "Auth Token",
           "typ": "aa-auth+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hY2Nlc3MuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJqdGkiOiJmNTFjZjlkNy02YmRmLTQ5OTctODhiZS0xZjJjMjc3MTRjYTUiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6IjhmMTRlNDVmY2VlYTE2N2E1YTM2ZGVkZDRiZWEyNTQzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwic2NvcGUiOiJyZWFkIiwibWlzc2lvbl9zMjU2IjoiN1NHVEZzdUtDY3BZSndHUmtWQmk4dk9jMVNzbTdOZGduVmFBcnVLODdSZyIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw",
           "header": {
             "alg": "EdDSA",
             "kid": "as-key-1",
@@ -311,9 +450,11 @@
           },
           "payload": {
             "iss": "https://as.example",
-            "aud": "https://api.example",
             "dwk": "aauth-access.json",
+            "aud": "https://api.example",
             "jti": "f51cf9d7-6bdf-4997-88be-1f2c27714ca5",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
             "cnf": {
               "jwk": {
                 "kty": "OKP",
@@ -322,24 +463,17 @@
                 "kid": "agent-key-1"
               }
             },
-            "iat": 1776222894,
-            "exp": 1776226494,
-            "agent": "aauth:local@agent.example",
-            "act": {
-              "sub": "aauth:local@agent.example"
-            },
             "scope": "read",
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "iat": 1776222894,
+            "exp": 1776226494
           },
           "signature_b64": "AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw"
         },
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -347,38 +481,37 @@
           },
           "payload": {
             "iss": "https://api.example",
-            "aud": "https://as.example",
             "dwk": "aauth-resource.json",
+            "aud": "https://as.example",
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
-            "agent": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "person_token_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
             "iat": 1776222894,
-            "exp": 1776223494,
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "exp": 1776223494
           },
           "signature_b64": "ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw"
         }
       ],
       "signature": null,
       "annotations": [
-        "PS signs the federation request to AS with its own identity (sig=jwks_uri, PS server key).",
-        "AS trusts the PS via a pre-established business relationship, or via the dynamic trust paths defined in \u00a7PS-AS Federation (interaction-based user binding, payment, or claims-only).",
-        "AS inspects the resource token mission claim and preserves it unchanged in the auth token.",
-        "The resulting aa-auth+jwt has iss=AS, dwk=aauth-access.json (\u00a71531), and carries mission: {approver, s256}."
+        "The PS signs the federation request with its own identity (sig=jwks_uri).",
+        "agent_token accompanies resource_token: the AS evaluates policy, and the agent token may carry attestation claims that bear on it.",
+        "The AS verifies ps names the PS that sent this request. Resolving the person token is the PS's job, not the AS's.",
+        "The AS copies mission_s256 into the auth token unchanged. It is the only place the resource will read the mission from."
       ],
       "is_response": false
     },
     {
-      "step": 4,
+      "step": 5,
       "from": "ps",
       "to": "agent",
-      "label": "PS \u2192 agent response (auth_token delivered)",
+      "label": "PS → agent response (auth_token delivered)",
       "method": "POST",
-      "url": "https://ps.example/token",
+      "url": "https://ps.example/auth-token",
       "request_headers": {},
       "request_body": null,
       "response_status": 200,
@@ -386,14 +519,14 @@
         "Content-Type": "application/json"
       },
       "response_body": {
-        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
         "expires_in": 3600
       },
       "tokens": [
         {
           "name": "Auth Token",
           "typ": "aa-auth+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hY2Nlc3MuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJqdGkiOiJmNTFjZjlkNy02YmRmLTQ5OTctODhiZS0xZjJjMjc3MTRjYTUiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6IjhmMTRlNDVmY2VlYTE2N2E1YTM2ZGVkZDRiZWEyNTQzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwic2NvcGUiOiJyZWFkIiwibWlzc2lvbl9zMjU2IjoiN1NHVEZzdUtDY3BZSndHUmtWQmk4dk9jMVNzbTdOZGduVmFBcnVLODdSZyIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw",
           "header": {
             "alg": "EdDSA",
             "kid": "as-key-1",
@@ -401,9 +534,11 @@
           },
           "payload": {
             "iss": "https://as.example",
-            "aud": "https://api.example",
             "dwk": "aauth-access.json",
+            "aud": "https://api.example",
             "jti": "f51cf9d7-6bdf-4997-88be-1f2c27714ca5",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
             "cnf": {
               "jwk": {
                 "kty": "OKP",
@@ -412,42 +547,34 @@
                 "kid": "agent-key-1"
               }
             },
-            "iat": 1776222894,
-            "exp": 1776226494,
-            "agent": "aauth:local@agent.example",
-            "act": {
-              "sub": "aauth:local@agent.example"
-            },
             "scope": "read",
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "iat": 1776222894,
+            "exp": 1776226494
           },
           "signature_b64": "AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw"
         }
       ],
       "signature": null,
       "annotations": [
-        "The PS now returns to the agent's step 2 request with the AS-minted auth token.",
-        "Agent verifies auth token per \u00a71562: typ, dwk, iss, aud, agent, cnf.jwk, act.sub, exp.",
-        "The mission claim survived the round-trip \u2014 chain is intact so far."
+        "The PS returns the AS-minted auth token to the agent's step 3 request.",
+        "The agent verifies typ, dwk, iss, aud, cnf.jwk against its own key, and sub against the person token it presented at the resource.",
+        "There is no act claim and no delegation chain in -11."
       ],
       "is_response": true
     },
     {
-      "step": 5,
+      "step": 6,
       "from": "agent",
       "to": "resource",
-      "label": "GET /data + auth token + AAuth-Mission \u2192 200",
+      "label": "GET /data with the auth token → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
-        "AAuth-Mission": "approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"",
-        "AAuth-Capabilities": "interaction, clarification",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:BAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUG:"
+        "Host": "api.example",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": null,
       "response_status": 200,
@@ -456,16 +583,15 @@
       },
       "response_body": {
         "message": "Access granted within mission context!",
-        "agent": "aauth:local@agent.example",
-        "mission_verified": true,
-        "s256_match": true,
+        "person": "8f14e45fceea167a5a36dedd4bea2543",
+        "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
         "scope": "read"
       },
       "tokens": [
         {
           "name": "Auth Token",
           "typ": "aa-auth+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hY2Nlc3MuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJqdGkiOiJmNTFjZjlkNy02YmRmLTQ5OTctODhiZS0xZjJjMjc3MTRjYTUiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6IjhmMTRlNDVmY2VlYTE2N2E1YTM2ZGVkZDRiZWEyNTQzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwic2NvcGUiOiJyZWFkIiwibWlzc2lvbl9zMjU2IjoiN1NHVEZzdUtDY3BZSndHUmtWQmk4dk9jMVNzbTdOZGduVmFBcnVLODdSZyIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw",
           "header": {
             "alg": "EdDSA",
             "kid": "as-key-1",
@@ -473,9 +599,11 @@
           },
           "payload": {
             "iss": "https://as.example",
-            "aud": "https://api.example",
             "dwk": "aauth-access.json",
+            "aud": "https://api.example",
             "jti": "f51cf9d7-6bdf-4997-88be-1f2c27714ca5",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
             "cnf": {
               "jwk": {
                 "kty": "OKP",
@@ -484,42 +612,58 @@
                 "kid": "agent-key-1"
               }
             },
-            "iat": 1776222894,
-            "exp": 1776226494,
-            "agent": "aauth:local@agent.example",
-            "act": {
-              "sub": "aauth:local@agent.example"
-            },
             "scope": "read",
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "iat": 1776222894,
+            "exp": 1776226494
           },
           "signature_b64": "AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"\n\"aauth-mission\": approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
-          "signature-key",
-          "aauth-mission"
+          "signature-key"
         ]
       },
       "annotations": [
-        "Agent presents auth token via Signature-Key: sig=jwt (the auth token IS the signing credential).",
-        "AAuth-Mission header is included and aauth-mission is in the covered components (\u00a7588).",
-        "Strictly speaking, the header is redundant when the auth token already carries a mission claim (\u00a71333) \u2014 but the agent includes it so the resource can cross-verify.",
-        "Resource checks: auth token mission.s256 == AAuth-Mission s256 \u2014 both equal R9kNpXeErMQ1Jvk_\u2026",
-        "Access granted. Mission context is preserved end-to-end: proposal \u2192 resource token \u2192 auth token \u2192 access."
+        "The agent presents the auth token via Signature-Key: sig=jwt — the auth token is the signing credential now.",
+        "The resource reads mission_s256 from the auth token. There is nothing to cross-check it against and nothing for the agent to assert: the header is gone.",
+        "Mission context is preserved end-to-end: approval → person token → resource token → auth token → access, one digest throughout."
       ],
       "is_response": false
+    }
+  ],
+  "s256_chain": [
+    {
+      "label": "Mission blob bytes",
+      "source": "PS serializes the approved mission once and persists those exact bytes",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "s256 = BASE64URL(SHA-256(bytes)). The PS returns the same bytes base64url-encoded as the `mission` member, so the agent can recompute the digest itself."
+    },
+    {
+      "label": "mission_s256 in the person token",
+      "source": "PS stamps it when the agent names the mission at the person token endpoint",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "The agent asks for a person token with mission_s256; the PS verifies the mission exists, is active and belongs to this agent, then puts the value in the token."
+    },
+    {
+      "label": "mission_s256 in the resource token",
+      "source": "Resource copies it out of the person token it verified",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. person_token_jti names the exact token it was copied from."
+    },
+    {
+      "label": "mission_s256 in the auth token",
+      "source": "Issuer copies it from the resource token",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "The resource reads the mission only here. It never arrives as a header and is never agent-asserted."
     }
   ]
 }

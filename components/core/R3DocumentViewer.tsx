@@ -43,8 +43,10 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
             <span className="rounded-full bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 text-[10px] font-semibold text-teal-300">
               {vocabLabel}
             </span>
-            {document.version && (
-              <span className="text-[10px] text-muted-foreground/60 font-mono">v{document.version}</span>
+            {document.parameters && (
+              <span className="rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+                per-call proposal
+              </span>
             )}
           </div>
         </div>
@@ -75,6 +77,22 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
             ))}
           </div>
         </div>
+
+        {document.parameters && (
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
+              Parameters (this one call)
+            </p>
+            <pre className="overflow-x-auto rounded border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] font-mono leading-relaxed text-foreground/80">
+              {JSON.stringify(document.parameters, null, 2)}
+            </pre>
+            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground/70">
+              A large or sensitive value may be replaced by a digest object (s256, excerpt,
+              media_type). The full bytes travel from the agent to the resource at call time, where
+              the resource verifies them against the digest — so they never reach the PS.
+            </p>
+          </div>
+        )}
 
         {document.display && (
           <div className="space-y-2.5">
@@ -111,6 +129,20 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
                   <div className="space-y-0.5">
                     <p className="text-[10px] font-semibold text-muted-foreground">Data Accessed</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{document.display.data_accessed}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {document.display.detail && (
+              <div className="rounded-lg border border-border bg-muted/10 p-3">
+                <div className="flex items-start gap-2">
+                  <FileJson className="h-3.5 w-3.5 text-teal-400 shrink-0 mt-0.5" />
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-[10px] font-semibold text-teal-300">Detail (Markdown)</p>
+                    <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">
+                      {document.display.detail}
+                    </pre>
                   </div>
                 </div>
               </div>

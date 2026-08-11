@@ -49,10 +49,11 @@ const PROTOCOL_NAV: NavSection[] = [
     icon: Lock,
     color: "text-green-400",
     items: [
-      { label: "Identity-Based", href: "/access/identity-based" },
+      { label: "Agent Identity", href: "/access/identity-based" },
       { label: "Resource-Managed (2-party)", href: "/access/resource-managed" },
-      { label: "PS-Asserted (3-party)", href: "/access/ps-asserted" },
-      { label: "Federated (4-party)", href: "/access/federated" },
+      { label: "Person Identity", href: "/access/person-identity" },
+      { label: "PS Authorization (3-party)", href: "/access/ps-asserted" },
+      { label: "Federated Authorization (4-party)", href: "/access/federated" },
       { label: "Compare Modes", href: "/access/compare" },
     ],
   },
@@ -62,9 +63,9 @@ const PROTOCOL_NAV: NavSection[] = [
     color: "text-purple-400",
     items: [
       { label: "Proposal & Approval", href: "/missions/lifecycle" },
-      { label: "Resource Access", href: "/missions/resource-access" },
+      { label: "Mission Context at a Resource", href: "/missions/resource-access" },
       { label: "Out-of-Bounds Access", href: "/missions/out-of-bounds" },
-      { label: "Completion", href: "/missions/completion" },
+      { label: "Update & Completion", href: "/missions/completion" },
       { label: "Permission Endpoint", href: "/missions/permission" },
       { label: "Audit Endpoint", href: "/missions/audit" },
       { label: "End-to-End Lifecycle", href: "/missions/end-to-end" },
@@ -79,7 +80,6 @@ const PROTOCOL_NAV: NavSection[] = [
       { label: "Call Chaining", href: "/advanced/call-chaining" },
       { label: "Clarification Chat", href: "/advanced/clarification" },
       { label: "Interaction Chaining", href: "/advanced/interaction-chaining" },
-      { label: "User Delegation (Deferred Auth)", href: "/access/user-delegation" },
     ],
   },
   {
@@ -88,7 +88,7 @@ const PROTOCOL_NAV: NavSection[] = [
     color: "text-teal-400",
     items: [
       { label: "Vocabulary-Based Access", href: "/r3/vocabulary-basics" },
-      { label: "Conditional Operations", href: "/r3/conditional-ops" },
+      { label: "Per-Call Operations", href: "/r3/per-call-ops" },
       { label: "Content Addressing & Consent", href: "/r3/content-addressing" },
     ],
   },

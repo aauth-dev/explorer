@@ -1,7 +1,7 @@
 {
   "id": "resource-managed",
   "title": "Resource-Managed Access (2-party)",
-  "description": "The resource manages authorization entirely itself — no PS or AS involved. It verifies the agent's signed request, applies its own policy (allowlist, pre-registered key, or internal rule), and issues an opaque AAuth-Access token for subsequent calls. The token is a simple opaque string, not a JWT — the resource is its own authority.",
+  "description": "The resource manages authorization entirely itself — no PS or AS involved. It verifies the agent's signed request, applies its own policy (allowlist, pre-registered key, or internal rule), and issues a session token in the AAuth-Access header for subsequent calls. The session token is opaque to the agent — the resource wraps its own authorization state, which MAY be an existing OAuth access token — and it is the one AAuth credential a resource issues for its own consumption. A resource declares this mode as access_mode=session-token in its metadata.",
   "spec_section": "§ Resource-Managed Access (Two-Party)",
   "category": "access",
   "demo_phase": 2,
@@ -22,7 +22,7 @@
       "step": 1,
       "from": "agent",
       "to": "resource",
-      "label": "Signed GET /data → resource checks policy → 200 + opaque token",
+      "label": "Signed GET /data → resource checks policy → 200 + session token",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
@@ -45,7 +45,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -53,8 +53,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -86,8 +86,8 @@
         "Agent presents its agent token in the Signature-Key header using sig=jwt.",
         "Resource verifies the agent token JWT and HTTP signature, then checks its internal policy.",
         "This agent's domain is allowlisted — resource grants access immediately.",
-        "Resource issues an AAuth-Access header with an opaque token for subsequent calls.",
-        "The opaque token is a simple string minted by the resource — not a JWT, no PS or AS."
+        "Resource issues an AAuth-Access header carrying a session token for subsequent calls.",
+        "The session token is a token68 string minted by the resource — not a JWT, no PS or AS. It names the continuing relationship the resource has established with this agent for this person."
       ],
       "is_response": false
     },
@@ -95,7 +95,7 @@
       "step": 2,
       "from": "agent",
       "to": "resource",
-      "label": "Subsequent request with opaque token (signed) → 200",
+      "label": "Subsequent request with the session token (signed) → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
@@ -118,7 +118,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -126,8 +126,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -157,16 +157,16 @@
         ]
       },
       "annotations": [
-        "Agent presents the opaque token via Authorization: AAuth <token>.",
-        "Agent MUST include 'authorization' in the HTTP signature covered components — this binds the opaque token to the signed request.",
-        "Without the signature binding, the opaque token could be stolen and replayed as a standalone bearer token.",
+        "Agent presents the session token via Authorization: AAuth <token>.",
+        "Agent MUST include 'authorization' in the HTTP signature covered components — this binds the session token to the signed request.",
+        "Without the signature binding, the session token could be stolen and replayed as a standalone bearer token. The resource MAY return a new AAuth-Access value on any response, which the agent MUST then use — rolling refresh without a refresh flow.",
         "Resource validates the signature and looks up the token in its own store."
       ],
       "is_response": false
     }
   ],
   "interactive": {
-    "description": "The resource requires user interaction before granting access — for example, the user must log in via the resource's own OIDC provider. The agent initiates the request, is redirected to an interaction URL backed by OIDC/OAuth, polls while the user authenticates, then receives an opaque token. No PS or AS is involved at any point.",
+    "description": "The resource requires user interaction before granting access — for example, the user must log in via the resource's own OIDC provider. The agent initiates the request, is redirected to an interaction URL backed by OIDC/OAuth, polls while the user authenticates, then receives a session token. No PS or AS is involved at any point.",
     "participants": [
       {
         "id": "agent",
@@ -209,7 +209,7 @@
           "step": 5,
           "status": 200,
           "label": "Approved",
-          "detail": "User authenticated via OIDC. Resource issues opaque token."
+          "detail": "User authenticated via OIDC. Resource issues a session token."
         }
       ]
     },
@@ -242,7 +242,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJzdWIiOiJhYXV0aDpsb2NhbEAxMjcuMC4wLjEiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwianRpIjoiYTZhZTMwMWQtMWRjNy00Yjc1LThmOGItNTYxMjE5NzY2NGE3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.Placeholder",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -250,8 +250,8 @@
             },
             "payload": {
               "iss": "https://agent.example",
-              "sub": "aauth:local@agent.example",
               "dwk": "aauth-agent.json",
+              "sub": "aauth:local@agent.example",
               "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
               "cnf": {
                 "jwk": {
@@ -313,7 +313,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -321,8 +321,8 @@
             },
             "payload": {
               "iss": "https://agent.example",
-              "sub": "aauth:local@agent.example",
               "dwk": "aauth-agent.json",
+              "sub": "aauth:local@agent.example",
               "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
               "cnf": {
                 "jwk": {
@@ -366,7 +366,7 @@
           "The resource serves its standard OIDC login page at the interaction URL.",
           "The user authenticates with the resource's identity provider (e.g. Google, Okta, internal SSO).",
           "The resource's backend completes the OAuth/OIDC flow and records authorization for this agent.",
-          "Critically: the agent never sees OAuth tokens. The resource abstracts OIDC into an opaque AAuth-Access token."
+          "Critically: the agent never sees OAuth tokens. The resource abstracts OIDC into a session token carried in AAuth-Access."
         ],
         "is_response": false
       },
@@ -398,7 +398,7 @@
         "annotations": [
           "status=interacting: user has arrived at the resource's consent/login page.",
           "Agent stops prompting and keeps polling.",
-          "Next 200 delivers the opaque access token after user completes login."
+          "Next 200 delivers the session token after the user completes login."
         ],
         "is_response": false
       },
@@ -406,7 +406,7 @@
         "step": 5,
         "from": "agent",
         "to": "resource",
-        "label": "Poll pending URL → 200 + opaque token",
+        "label": "Poll pending URL → 200 + session token",
         "method": "GET",
         "url": "https://api.example/pending/c3e1f2a4b8d90675",
         "request_headers": {
@@ -428,7 +428,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -436,8 +436,8 @@
             },
             "payload": {
               "iss": "https://agent.example",
-              "sub": "aauth:local@agent.example",
               "dwk": "aauth-agent.json",
+              "sub": "aauth:local@agent.example",
               "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
               "cnf": {
                 "jwk": {
@@ -455,8 +455,8 @@
         ],
         "signature": null,
         "annotations": [
-          "User has authenticated. Resource issues opaque AAuth-Access token.",
-          "The opaque token encodes the resource's own session — backed by the OIDC token it obtained.",
+          "User has authenticated. Resource issues the session token in AAuth-Access.",
+          "The session token wraps the resource's own authorization state — here, backed by the OIDC token it obtained. The agent cannot read it.",
           "The agent receives the token and can now use it on all subsequent requests."
         ],
         "is_response": false
@@ -465,7 +465,7 @@
         "step": 6,
         "from": "agent",
         "to": "resource",
-        "label": "Subsequent request with opaque token (signed) → 200",
+        "label": "Subsequent request with the session token (signed) → 200",
         "method": "GET",
         "url": "https://api.example/data",
         "request_headers": {
@@ -488,7 +488,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -496,8 +496,8 @@
             },
             "payload": {
               "iss": "https://agent.example",
-              "sub": "aauth:local@agent.example",
               "dwk": "aauth-agent.json",
+              "sub": "aauth:local@agent.example",
               "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
               "cnf": {
                 "jwk": {
@@ -527,8 +527,8 @@
           ]
         },
         "annotations": [
-          "Agent presents the opaque token via Authorization: AAuth <token>.",
-          "Agent MUST include 'authorization' in the HTTP signature covered components — binds the opaque token to the signed request.",
+          "Agent presents the session token via Authorization: AAuth <token>.",
+          "Agent MUST include 'authorization' in the HTTP signature covered components — binds the session token to the signed request.",
           "Resource validates the signature and looks up the token in its own store.",
           "No PS, no AS — entirely self-contained within the resource."
         ],

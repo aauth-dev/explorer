@@ -1,29 +1,41 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
 
+const S256 = "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg";
+
 const WITHOUT = {
   label: "Without Missions",
   color: "text-zinc-400",
   border: "border-zinc-700",
   headers: {
     request: {
-      "Signature-Key": 'sig=jwt;jwt="eyJhbGc...agent-token..."',
+      "Signature-Key": 'sig=jwt;jwt="eyJhbGc...person-token..."',
       "Signature-Input": 'sig=("@method" "@authority" "@path" "signature-key")',
       Signature: "sig=:base64url…:",
+    },
+    personToken: {
+      iss: "https://ps.example",
+      dwk: "aauth-person.json",
+      aud: "https://api.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "…", alg: "Ed25519" } },
+      jti: "pt-32d653",
     },
     resourceToken: {
       iss: "https://api.example",
       aud: "https://as.example",
-      agent: "aauth:local@agent.example",
-      agent_jkt: "abc123…",
+      ps: "https://ps.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      person_token_jti: "pt-32d653",
+      agent_jkt: "tcP75aIbpvVmzZ0P…",
       scope: "read",
     },
     authToken: {
       iss: "https://as.example",
       aud: "https://api.example",
-      agent: "aauth:local@agent.example",
-      act: { sub: "aauth:local@agent.example" },
-      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "..." } },
+      ps: "https://ps.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "…", alg: "Ed25519" } },
       scope: "read",
     },
   },
@@ -35,57 +47,71 @@ const WITH = {
   border: "border-purple-500/40",
   headers: {
     request: {
-      "Signature-Key": 'sig=jwt;jwt="eyJhbGc...agent-token..."',
-      "AAuth-Mission": 'approver="https://ps.example"; s256="sha256ofmission…"',
+      "Signature-Key": 'sig=jwt;jwt="eyJhbGc...person-token..."',
       "AAuth-Capabilities": "interaction, clarification",
-      "Signature-Input": 'sig=("@method" "@authority" "@path" "signature-key" "aauth-mission")',
+      "Signature-Input": 'sig=("@method" "@authority" "@path" "signature-key")',
       Signature: "sig=:base64url…:",
     },
     missionBlob: {
       approver: "https://ps.example",
       agent: "aauth:local@agent.example",
       approved_at: "2026-04-14T17:14:54Z",
-      description: "# Task …",
+      expires_at: "2026-05-14T17:14:54Z",
+      description: "# Analyze Q2 Customer Feedback …",
       approved_tools: [
         { name: "FeedbackReader", description: "Read customer feedback records" },
         { name: "ReportWriter", description: "Write the summary report" },
       ],
-      capabilities: ["interaction", "clarification"],
+      approved_resources: ["https://api.example"],
+    },
+    personToken: {
+      iss: "https://ps.example",
+      dwk: "aauth-person.json",
+      aud: "https://api.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "…", alg: "Ed25519" } },
+      mission_s256: S256,
+      jti: "pt-32d653",
     },
     resourceToken: {
       iss: "https://api.example",
       aud: "https://as.example",
-      agent: "aauth:local@agent.example",
-      agent_jkt: "abc123…",
+      ps: "https://ps.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      person_token_jti: "pt-32d653",
+      agent_jkt: "tcP75aIbpvVmzZ0P…",
       scope: "read",
-      mission: { approver: "https://ps.example", s256: "sha256ofmission…" },
+      mission_s256: S256,
     },
     authToken: {
       iss: "https://as.example",
       aud: "https://api.example",
-      agent: "aauth:local@agent.example",
-      act: { sub: "aauth:local@agent.example" },
-      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "..." } },
+      ps: "https://ps.example",
+      sub: "8f14e45fceea167a5a36dedd4bea2543",
+      cnf: { jwk: { kty: "OKP", crv: "Ed25519", x: "…", alg: "Ed25519" } },
       scope: "read",
-      mission: { approver: "https://ps.example", s256: "sha256ofmission…" },
+      mission_s256: S256,
     },
   },
 };
 
 const ADDITIONS = [
-  { item: "AAuth-Mission header on requests", with: true },
-  { item: "AAuth-Capabilities header", with: true },
-  { item: "aauth-mission in signature components", with: true },
-  { item: "mission claim in resource token", with: true },
-  { item: "mission claim in auth token", with: true },
-  { item: "PS /mission endpoint for proposals", with: true },
-  { item: "s256 verification at each hop", with: true },
-  { item: "Mission log at PS", with: true },
-  { item: "Pre-approved tools (optional)", with: true },
+  { item: "mission_s256 named at the person token endpoint", with: true },
+  { item: "mission_s256 claim in the person token", with: true },
+  { item: "mission_s256 claim in the resource token (REQUIRED once the person token has one)", with: true },
+  { item: "mission_s256 claim in the auth token", with: true },
+  { item: "PS mission_endpoint for proposals, updates and completion", with: true },
+  { item: "s256 verified against the decoded mission blob bytes", with: true },
+  { item: "Mission log at the PS", with: true },
+  { item: "Pre-approved tools and resources (optional)", with: true },
+  { item: "Mission expiry caps every token's lifetime", with: true },
+  { item: "Audit endpoint (requires a mission)", with: true },
+  { item: "Person token before any resource token", with: true, without: true },
   { item: "HTTP Message Signatures", with: true, without: true },
   { item: "Resource token exchange", with: true, without: true },
   { item: "PS-AS federation (federated mode)", with: true, without: true },
   { item: "Proof-of-possession (cnf)", with: true, without: true },
+  { item: "Permission and interaction endpoints", with: true, without: true },
 ];
 
 function HeaderBlock({ data }: { data: Record<string, unknown> }) {
@@ -104,8 +130,11 @@ export default function MissionsComparePage() {
         <h1 className="text-3xl font-bold">With vs Without Missions</h1>
         <p className="text-muted-foreground max-w-2xl">
           Missions are an optional governance layer that works with any resource access mode that
-          has a Person Server. They add mission context to every token in the chain — without
-          changing the underlying signing or federation mechanics.
+          has a Person Server. They add one claim — <code className="font-mono">mission_s256</code> —
+          to every token in the chain, without changing the signing or federation mechanics. In -11
+          a mission reaches a resource only inside a PS-issued token: the{" "}
+          <code className="font-mono">AAuth-Mission</code> header and its IANA registration were
+          both removed, so the mission is no longer something the agent asserts.
         </p>
       </div>
 
@@ -163,6 +192,10 @@ export default function MissionsComparePage() {
                 </div>
               )}
               <div className="space-y-2">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Person Token (aa-person+jwt payload)</p>
+                <HeaderBlock data={mode.headers.personToken as Record<string, unknown>} />
+              </div>
+              <div className="space-y-2">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Resource Token (aa-resource+jwt payload)</p>
                 <HeaderBlock data={mode.headers.resourceToken as Record<string, unknown>} />
               </div>
@@ -177,17 +210,20 @@ export default function MissionsComparePage() {
 
       {/* Mission lifecycle summary */}
       <section className="rounded-xl border border-border bg-card p-6 space-y-4">
-        <h2 className="text-sm font-semibold">Mission Lifecycle (Before Authorization)</h2>
+        <h2 className="text-sm font-semibold">Mission Lifecycle</h2>
         <ol className="space-y-2 text-sm text-muted-foreground">
           {[
-            "Agent fetches PS well-known metadata to find mission_endpoint.",
-            'Agent POSTs mission proposal: {"description": "# Task...", "tools": [...]}.',
-            "PS cannot approve without the user — returns 202 + AAuth-Requirement with interaction URL.",
-            "User opens the interaction URL, reviews the description and tools, and approves.",
-            "Agent polls the pending URL; PS returns 200 with the approved mission blob (approver, agent, approved_at, description, approved_tools, capabilities).",
-            'AAuth-Mission: approver="..."; s256="sha256..." header is set on the 200 response.',
-            "Agent verifies SHA-256(response_body_bytes) == s256 from the header and stores the bytes as received.",
-            "Agent includes AAuth-Mission on all subsequent requests; when the mission terminates, the PS returns mission_terminated for any mission-bound request.",
+            "Agent fetches PS well-known metadata to find mission_endpoint and person_token_endpoint.",
+            'Agent POSTs a proposal: {"description": "# Task…", "tools": [...], "resources": ["https://api.example"]}.',
+            "PS cannot approve without the person — returns 202 + AAuth-Requirement with an interaction URL.",
+            "Person opens the interaction URL, reviews the description, tools and resources, and approves.",
+            "Agent polls the pending URL; PS returns 200 with {s256, mission, capabilities, person_tokens}.",
+            "Agent decodes `mission`, computes SHA-256 over the decoded bytes, and compares to `s256` (a SHOULD, not a requirement).",
+            "person_tokens carries one mission-scoped person token per approved resource — each already stamped with mission_s256.",
+            "Agent presents a person token at a resource; mission_s256 flows into the resource token and then the auth token.",
+            "Work changes: agent POSTs {action: \'update\'} to {mission_endpoint}/{mission_s256}. The blob and mission_s256 are unchanged; the context the PS evaluates against is not.",
+            "Agent proposes completion: {action: \'completion\', summary} at the same URL. The person accepts and the mission terminates, or asks follow-ups and it stays active.",
+            "After termination, any PS request naming this mission_s256 returns mission_terminated with an optional termination_reason.",
           ].map((step, i) => (
             <li key={i} className="flex items-start gap-3">
               <span className="shrink-0 text-[10px] font-mono text-muted-foreground/50 mt-1">{i + 1}.</span>

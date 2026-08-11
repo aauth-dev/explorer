@@ -197,7 +197,12 @@
         "signature_base": "\"@method\": POST\n\"@authority\": agent.user-domain.example\n\"@path\": /bootstrap/bind\n\"content-digest\": sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"ps-key-1\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000000;alg=\"ed25519\";keyid=\"ps-key-1\"",
         "signature_key": "sig=jwks_uri;id=\"https://ps.example\";kid=\"ps-key-1\"",
-        "covered_components": ["@method", "@authority", "@path", "content-digest"]
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-digest"
+        ]
       },
       "annotations": [
         "PS notifies the agent provider that the binding has been established.",
@@ -223,7 +228,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LnVzZXItZG9tYWluLmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC51c2VyLWRvbWFpbi5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGU6ODAwMyIsInVzZXJfc3ViIjoidXNlcl9zdWJfMTIzNDU2IiwiZHdrIjoiLy53ZWxsLWtub3duL2FhdXRoLWFnZW50Lmpzb24iLCJqdGkiOiJzZWxmLWhvc3RlZC10b2tlbi0xMjM0NTYiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiYzJWc1psOW9iM04wWldSZmMybG5ibWx1WjE5clpYbGZjSFZpYkdsaiIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIn19LCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDg2NDAwMH0.c2VsZl9ob3N0ZWRfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InNlbGYtaG9zdGVkLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LnVzZXItZG9tYWluLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQudXNlci1kb21haW4uZXhhbXBsZSIsImp0aSI6InNlbGYtaG9zdGVkLXRva2VuLTEyMzQ1NiIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJjMlZzWmw5b2IzTjBaV1JmYzJsbmJtbHVaMTlyWlhsZmNIVmliR2xqIiwia2lkIjoic2VsZi1ob3N0ZWQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzAwMDAwMDAwLCJleHAiOjE3MDA4NjQwMDB9.c2VsZl9ob3N0ZWRfc2lnbmF0dXJlX2hlcmVfYmFzZTY0dXJs",
           "header": {
             "alg": "EdDSA",
             "kid": "self-hosted-key-1",
@@ -231,9 +236,8 @@
           },
           "payload": {
             "iss": "https://agent.user-domain.example",
-            "sub": "aauth:local@agent.user-domain.example",
-            "ps": "https://ps.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.user-domain.example",
             "jti": "self-hosted-token-123456",
             "cnf": {
               "jwk": {
@@ -243,6 +247,7 @@
                 "kid": "self-hosted-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1700000000,
             "exp": 1700864000
           },

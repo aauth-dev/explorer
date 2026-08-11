@@ -4,12 +4,14 @@ import { ArrowRight } from "lucide-react";
 const MODES = [
   {
     id: "identity-based",
-    label: "Identity-Based",
+    label: "Agent identity",
     parties: "Agent + Resource",
     color: "text-green-400",
     border: "border-green-500/30",
     href: "/access/identity-based",
     participants: ["Agent", "Resource"],
+    knows: "which agent",
+    establishedBy: "the agent provider",
     flow: [
       { arrow: "Agent → Resource", note: "HTTPSig w/ agent token" },
       { arrow: "Resource → Agent", note: "200 OK (access decision by agent identity)" },
@@ -17,66 +19,92 @@ const MODES = [
     tokens: ["aa-agent+jwt"],
     infra: "None — just the agent and resource",
     useCase: "Replacing API keys with cryptographic identity",
-    tradeoff: "Resource maintains its own access policy by agent identity",
   },
   {
     id: "resource-managed",
-    label: "Resource-Managed",
+    label: "Resource-managed",
     parties: "Two-Party",
     color: "text-cyan-400",
     border: "border-cyan-500/30",
     href: "/access/resource-managed",
     participants: ["Agent", "Resource"],
+    knows: "which person",
+    establishedBy: "the resource's own flow",
     flow: [
       { arrow: "Agent → Resource", note: "HTTPSig w/ agent token" },
       { arrow: "Resource → Agent", note: "202 + AAuth-Requirement: interaction" },
-      { arrow: "User → Resource", note: "Completes interaction at resource's own page" },
-      { arrow: "Agent → Resource", note: "Poll → 200 + AAuth-Access (opaque token)" },
-      { arrow: "Agent → Resource", note: "Subsequent calls: Authorization: AAuth <token>" },
+      { arrow: "User → Resource", note: "Completes interaction at the resource's own page" },
+      { arrow: "Agent → Resource", note: "Poll → 200 + AAuth-Access (session token)" },
+      { arrow: "Agent → Resource", note: "Subsequent calls: Authorization: AAuth <session token>" },
     ],
-    tokens: ["aa-agent+jwt", "AAuth-Access (opaque)"],
+    tokens: ["aa-agent+jwt", "session token (opaque)"],
     infra: "Resource handles auth itself (interaction, OAuth/OIDC, internal policy)",
     useCase: "Resource manages authorization without an external PS or AS",
-    tradeoff: "Token is opaque and bound to the resource via the HTTP signature",
+  },
+  {
+    id: "person-identity",
+    label: "Person identity",
+    parties: "Three-Party",
+    color: "text-sky-400",
+    border: "border-sky-500/30",
+    href: "/access/person-identity",
+    participants: ["Agent", "Resource", "Person Server"],
+    knows: "which person",
+    establishedBy: "the person server",
+    flow: [
+      { arrow: "Agent → PS", note: "POST person_token_endpoint {resource}" },
+      { arrow: "PS → Agent", note: "aa-person+jwt: aud=resource, directed sub, cnf=agent key" },
+      { arrow: "Agent → Resource", note: "HTTPSig w/ person token in place of the agent token" },
+      { arrow: "Resource → Agent", note: "200 OK (access decision by person identity)" },
+    ],
+    tokens: ["aa-agent+jwt", "aa-person+jwt"],
+    infra: "Person Server only — never in the path of a call",
+    useCase: "Federated login for agents: the resource accepts a login the PS ran",
   },
   {
     id: "ps-asserted",
-    label: "PS-Asserted",
+    label: "PS authorization",
     parties: "Three-Party",
     color: "text-purple-400",
     border: "border-purple-500/30",
     href: "/access/ps-asserted",
     participants: ["Agent", "Resource", "Person Server"],
+    knows: "person and consented scope",
+    establishedBy: "the person server",
     flow: [
-      { arrow: "Agent → Resource", note: "HTTPSig → 401 + resource token (aud=PS)" },
-      { arrow: "Agent → PS", note: "POST /token w/ resource token" },
+      { arrow: "Agent → PS", note: "Person token for this resource" },
+      { arrow: "Agent → Resource", note: "POST authorization_endpoint w/ person token" },
+      { arrow: "Resource → Agent", note: "Resource token (aud=PS) — copies ps, sub, person_token_jti" },
+      { arrow: "Agent → PS", note: "POST auth_token_endpoint w/ resource token" },
       { arrow: "PS → Agent", note: "Auth token (iss=PS, dwk=aauth-person.json)" },
       { arrow: "Agent → Resource", note: "Present auth token → 200" },
     ],
-    tokens: ["aa-agent+jwt", "aa-resource+jwt", "aa-auth+jwt (from PS)"],
+    tokens: ["aa-agent+jwt", "aa-person+jwt", "aa-resource+jwt", "aa-auth+jwt (from PS)"],
     infra: "Person Server (no Access Server)",
-    useCase: "Resource accepts identity claims (sub, email, tenant, groups, roles) from any PS",
-    tradeoff: "Resource still applies its own policy on the asserted claims",
+    useCase: "Resource accepts identity claims and consented scope from any PS",
   },
   {
     id: "federated",
-    label: "Federated",
+    label: "Federated authorization",
     parties: "Four-Party",
     color: "text-orange-400",
     border: "border-orange-500/30",
     href: "/access/federated",
     participants: ["Agent", "Resource", "Person Server", "Access Server"],
+    knows: "person and policy verdict",
+    establishedBy: "the access server",
     flow: [
-      { arrow: "Agent → Resource", note: "HTTPSig → 401 + resource token (aud=AS)" },
-      { arrow: "Agent → PS", note: "POST /token w/ resource token" },
-      { arrow: "PS → AS", note: "PS federates: POST /token (signed)" },
+      { arrow: "Agent → PS", note: "Person token for this resource" },
+      { arrow: "Agent → Resource", note: "POST authorization_endpoint w/ person token" },
+      { arrow: "Resource → Agent", note: "Resource token (aud=AS)" },
+      { arrow: "Agent → PS", note: "POST auth_token_endpoint w/ resource token" },
+      { arrow: "PS → AS", note: "Federates: resource_token + agent_token (signed)" },
       { arrow: "AS → PS → Agent", note: "Auth token (iss=AS, dwk=aauth-access.json)" },
       { arrow: "Agent → Resource", note: "Present auth token → 200" },
     ],
-    tokens: ["aa-agent+jwt", "aa-resource+jwt", "aa-auth+jwt (from AS)"],
+    tokens: ["aa-agent+jwt", "aa-person+jwt", "aa-resource+jwt", "aa-auth+jwt (from AS)"],
     infra: "Person Server + Access Server, PS-AS trust (pre-established or dynamic)",
     useCase: "Cross-domain access with the resource's AS enforcing policy",
-    tradeoff: "Most moving parts; the PS-AS trust path must be established",
   },
 ];
 
@@ -87,10 +115,12 @@ export default function AccessComparePage() {
         <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Resource Access</p>
         <h1 className="text-3xl font-bold">Resource Access Mode Comparison</h1>
         <p className="text-muted-foreground max-w-3xl">
-          AAuth defines four resource access modes, from simple identity verification to full
-          four-party federation. The protocol works in every mode — adoption does not require
-          coordination between parties. Agent governance (missions, permission, audit, interaction
-          relay) is an orthogonal layer that any agent with a PS can add on top of any mode.
+          AAuth defines five resource access modes, sorted by what the resource ends up knowing
+          and which party established it — not by how much of the protocol they use. The protocol
+          works in every mode, and adoption does not require coordination between parties. A
+          resource MAY apply different modes to different endpoints. Agent governance (missions,
+          permission, audit, interaction relay) is an orthogonal layer that any agent with a PS can
+          add on top of any mode.
         </p>
       </div>
 
@@ -106,6 +136,17 @@ export default function AccessComparePage() {
               <Link href={m.href} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 Live demo <ArrowRight className="h-3 w-3" />
               </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/20 px-3 py-2 text-xs">
+              <div>
+                <p className="text-muted-foreground/60 text-[10px] uppercase tracking-wider mb-0.5">Resource knows</p>
+                <p className="text-foreground/80">{m.knows}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground/60 text-[10px] uppercase tracking-wider mb-0.5">Established by</p>
+                <p className="text-foreground/80">{m.establishedBy}</p>
+              </div>
             </div>
 
             {/* Participants */}
@@ -169,20 +210,27 @@ export default function AccessComparePage() {
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h2 className="text-sm font-semibold">Progressive Adoption</h2>
         <p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">
-          Each mode is independently deployable. A resource can start by just verifying the agent&apos;s
-          signature (identity-based) and later add interaction-based authorization (resource-managed),
-          accept identity claims from any PS (PS-asserted), or deploy its own access server
-          (federated) — without changing the agent&apos;s signing approach. The main change is what the
-          resource returns in its `401` challenge and which party mints the eventual auth token.
+          Each mode is independently deployable. A resource can start by just verifying the
+          agent&apos;s signature (agent identity), later accept a login the PS ran (person identity),
+          run its own flow instead (resource-managed), take consented scope from any PS
+          (PS authorization), or deploy its own access server (federated) — without changing the
+          agent&apos;s signing approach. What varies is what the resource challenges for and which
+          party mints the eventual auth token. Resource-managed and person identity reach the same
+          destination by different routes: in the first the resource runs its own login, in the
+          second it accepts one the person server ran. A resource serving on identity alone
+          challenges for <code className="font-mono">auth-token</code> only at the operations that
+          need more, and keeps serving the rest on the person token.
         </p>
         <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-muted-foreground">
-          <span className="text-green-400">Identity-Based</span>
+          <span className="text-green-400">Agent identity</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-cyan-400">Resource-Managed</span>
+          <span className="text-cyan-400">Resource-managed</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-purple-400">PS-Asserted</span>
+          <span className="text-sky-400">Person identity</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-orange-400">Federated</span>
+          <span className="text-purple-400">PS authorization</span>
+          <ArrowRight className="h-3 w-3" />
+          <span className="text-orange-400">Federated authorization</span>
         </div>
       </div>
 

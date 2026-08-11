@@ -93,15 +93,28 @@ export interface MissionTool {
 export interface MissionBlobData {
   title: string;
   description: string;
+  /** Blob member `description` — the approved Markdown scope */
   markdown: string;
-  /** Required per SPEC.md §1261 — approved tool list returned in the mission blob */
-  approved_tools: MissionTool[];
+  /** Blob member — HTTPS URL of the entity that approved the mission (always the PS today) */
   approver: string;
-  /** Required per SPEC.md §1261 — agent identifier on the approved blob */
+  /** Blob member — the agent identifier the mission belongs to */
   agent: string;
-  /** Required per SPEC.md §1261 — ISO 8601 timestamp; ensures s256 uniqueness */
+  /** Blob member — ISO 8601; ensures the s256 is globally unique */
   approved_at: string;
+  /** Optional blob member — after this the PS treats the mission as terminated */
+  expires_at?: string;
+  /** Optional blob member — tools usable without a per-call permission request */
+  approved_tools: MissionTool[];
+  /** Optional blob member — resources the person pre-approved for this mission */
+  approved_resources?: string[];
+  /** The `mission` member of the approval response: the blob base64url-encoded, unpadded */
+  encoded?: string;
+  /** The mission identifier: BASE64URL(SHA-256(blob bytes)). Not a blob member. */
   s256: string;
+  /**
+   * From the approval response, not the blob, and not covered by the digest —
+   * it says whether the PS can currently reach the person.
+   */
   capabilities?: string[];
 }
 
@@ -119,12 +132,15 @@ export interface R3Display {
   implications?: string;
   data_accessed?: string;
   irreversible?: string;
+  /** Per-call proposals only: Markdown detail for the person's approval decision */
+  detail?: string;
 }
 
 export interface R3Document {
-  version?: string;
   vocabulary: string;
   operations: Record<string, unknown>[];
+  /** Per-call proposals only: the concrete parameters of the one call being proposed */
+  parameters?: Record<string, unknown>;
   display?: R3Display;
 }
 

@@ -9,12 +9,11 @@ const HEADER_TOOLTIPS: Record<string, string> = {
   "Signature-Input": "Declares which components are covered by the signature and signature parameters",
   "Signature": "The actual HTTP message signature value (base64url encoded)",
   "Accept-Signature": "Challenge from resource — specifies which signing scheme is required",
-  "AAuth-Requirement": "Resource's authorization challenge — contains resource token the agent must exchange",
-  "AAuth-Access": "Carries auth token or opaque access token for resource access",
-  "AAuth-Mission": "References an approved mission by approver URL and s256 hash of the mission blob",
+  "AAuth-Requirement": "A challenge naming what the recipient needs: agent-token, person-token, auth-token (with a resource token), interaction, clarification, claims, approval or payment",
+  "AAuth-Access": "Carries the session token a resource issues for its own consumption in resource-managed access. Opaque to the agent; returned on the Authorization header as `AAuth <token>`.",
   "AAuth-Capabilities": "Lists capabilities the agent supports (e.g. clarification, interaction)",
   "Content-Type": "Media type of the request/response body",
-  Authorization: "Bearer token for resource access (opaque or JWT)",
+  Authorization: "Carries the session token back to the resource as `AAuth <token>`. The agent MUST cover `authorization` in its HTTP signature, which is what stops the token being replayed as a bearer token.",
 };
 
 const AAUTH_HEADER_KEYS = new Set([
@@ -24,7 +23,6 @@ const AAUTH_HEADER_KEYS = new Set([
   "accept-signature",
   "aauth-requirement",
   "aauth-access",
-  "aauth-mission",
   "aauth-capabilities",
 ]);
 

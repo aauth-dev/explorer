@@ -1,0 +1,548 @@
+{
+  "id": "r3-per-call-ops",
+  "title": "Per-Call Operations",
+  "description": "An agent holds an auth token where list_calendar_events is granted outright and create_calendar_event is r3_per_call — authorized in principle, but not for any specific call. When the agent invokes it, the resource builds a per-call proposal: a full R3 document scoped to that one invocation, carrying the call's concrete parameters. The resource token references it by r3_uri and r3_s256 only, so the parameters never travel in a token. The AS evaluates those parameters, and the resource verifies the actual call against the approved proposal before serving it.",
+  "spec_section": "§ Per-Call Proposals",
+  "category": "r3",
+  "participants": [
+    {
+      "id": "agent",
+      "label": "Agent",
+      "type": "agent"
+    },
+    {
+      "id": "resource",
+      "label": "Calendar Resource",
+      "type": "resource"
+    },
+    {
+      "id": "ps",
+      "label": "Person Server",
+      "type": "person-server"
+    },
+    {
+      "id": "as",
+      "label": "Auth Server",
+      "type": "access-server"
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "from": "agent",
+      "to": "resource",
+      "label": "POST /mcp/tools/call → 401 requirement=auth-token + proposal-backed resource token",
+      "method": "POST",
+      "url": "https://calendar.example.com/mcp/tools/call",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "Signature": "sig=:UjNBdXRoVG9rZW5QcmVzZW50ZWRWaWFTaWduYXR1cmVLZXlFeGFtcGxlQnl0ZXM:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:"
+      },
+      "request_body": {
+        "name": "create_calendar_event",
+        "arguments": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": [
+            "alice@example.com",
+            "cfo@example.com",
+            "ceo@example.com"
+          ]
+        }
+      },
+      "response_status": 401,
+      "response_headers": {
+        "AAuth-Requirement": "requirement=auth-token; resource-token=\"eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlw…\""
+      },
+      "response_body": null,
+      "tokens": [
+        {
+          "name": "Existing Auth Token (r3_per_call)",
+          "typ": "aa-auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtYWNjZXNzLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtNmIxYzNkIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJzdWIiOiJlNGRhM2I3ZmJiY2UyMzQ1ZDc3NzJiMDY3NGEzMThkNSIsInIzX3VyaSI6Imh0dHBzOi8vY2FsZW5kYXIuZXhhbXBsZS5jb20vcjMvaG9yc3Axa2g0dWduenB2ZSIsInIzX3MyNTYiOiJob1JTcDFLaDRVR256cHZFNWd4amMtMkpQWDRXUmVidV8yLWFwVGMzbFBJIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6Imxpc3RfY2FsZW5kYXJfZXZlbnRzIn1dfSwicjNfcGVyX2NhbGwiOnsidm9jYWJ1bGFyeSI6InVybjphYXV0aDp2b2NhYnVsYXJ5Om1jcCIsIm9wZXJhdGlvbnMiOlt7InRvb2wiOiJjcmVhdGVfY2FsZW5kYXJfZXZlbnQifV19LCJpYXQiOjE3NDE4MjQwMDAsImV4cCI6MTc0MTgyNDkwMH0.MEYCIQDexisting_auth_token_with_per-call_grant_display_only",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "aa-auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-access.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-6b1c3d",
+            "ps": "https://ps.example",
+            "sub": "e4da3b7fbbce2345d7772b0674a318d5",
+            "r3_uri": "https://calendar.example.com/r3/horsp1kh4ugnzpve",
+            "r3_s256": "hoRSp1Kh4UGnzpvE5gxjc-2JPX4WRebu_2-apTc3lPI",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                {
+                  "tool": "list_calendar_events"
+                }
+              ]
+            },
+            "r3_per_call": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                {
+                  "tool": "create_calendar_event"
+                }
+              ]
+            },
+            "iat": 1741824000,
+            "exp": 1741824900
+          },
+          "signature_b64": "MEYCIQDexisting_auth_token_with_per-call_grant_display_only"
+        },
+        {
+          "name": "Per-Call Resource Token",
+          "typ": "aa-resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2NhbGwvMnVicjBmNjN4ZGthdTctbSIsInIzX3MyNTYiOiIyVWJSMEY2M3hka0FVNy1tQUlyZl9IY2Zzd3lOUTRoZlR3XzdTVENOZzVBIiwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.cGVyQ2FsbFByb3Bvc2FsUmVzb3VyY2VUb2tlblNpZ25hdHVyZUV4YW1wbGU",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-2",
+            "typ": "aa-resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-cond-9a3b",
+            "ps": "https://ps.example",
+            "sub": "e4da3b7fbbce2345d7772b0674a318d5",
+            "person_token_jti": "pt-8b41fd",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/call/2ubr0f63xdkau7-m",
+            "r3_s256": "2UbR0F63xdkAU7-mAIrf_HcfswyNQ4hfTw_7STCNg5A",
+            "iat": 1741824100,
+            "exp": 1741824200
+          },
+          "signature_b64": "cGVyQ2FsbFByb3Bvc2FsUmVzb3VyY2VUb2tlblNpZ25hdHVyZUV4YW1wbGU"
+        }
+      ],
+      "annotations": [
+        "The agent presents its auth token and invokes create_calendar_event. The resource matches it in r3_per_call, not r3_granted.",
+        "An r3_per_call operation is authorized in principle but not for any specific call: the consequences depend on the concrete parameters — who is invited, how large the payment is, which record is deleted.",
+        "The resource builds a per-call proposal — a full R3 document scoped to this one invocation, with the same structure, the same content-addressing and the same AS/PS-only fetch restriction as a class document. -02 made these full R3 documents rather than a bespoke shape.",
+        "It persists the proposal keyed by its r3_s256 and returns a resource token whose r3_uri and r3_s256 reference it. The token carries only the reference — never the parameters. That keeps tokens small and binds the eventual approval to the exact call proposed.",
+        "The agenda parameter is represented as a digest with a short excerpt: large or sensitive values stay out of every token and away from the PS. The full bytes travel from the agent to the resource at call time."
+      ],
+      "r3_document": {
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          {
+            "tool": "create_calendar_event"
+          }
+        ],
+        "parameters": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": [
+            "alice@example.com",
+            "cfo@example.com",
+            "ceo@example.com"
+          ],
+          "agenda": {
+            "s256": "3RkQ2mVvHhcXm4tX8s0nJ0hVQGmXaLZ5F1sZ3B7yqAo",
+            "excerpt": "1. Q2 actuals vs plan  2. Headcount …",
+            "media_type": "text/plain"
+          }
+        },
+        "display": {
+          "summary": "Create one calendar event and invite three people",
+          "irreversible": "Invitations are sent immediately and cannot be unsent",
+          "detail": "## Action\nCreate a calendar event\n\n## To\nalice@example.com, cfo@example.com, ceo@example.com\n\n## Details\nBudget Review, 2026-05-15 09:00–10:00 UTC\n\n## Content\n1. Q2 actuals vs plan  2. Headcount …\n\n## Irreversible\nInvitations are sent immediately and cannot be unsent"
+        }
+      },
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": calendar.example.com\n\"@path\": /mcp/tools/call\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-type",
+          "content-digest",
+          "signature-key"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "from": "agent",
+      "to": "ps",
+      "label": "POST /token + per-call resource token → PS (PS federates to AS)",
+      "method": "POST",
+      "url": "https://ps.example/auth-token",
+      "request_headers": {
+        "Host": "ps.example",
+        "Content-Type": "application/json",
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
+        "expires_in": 30
+      },
+      "tokens": [
+        {
+          "name": "Per-Call Resource Token",
+          "typ": "aa-resource+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC1jb25kLTlhM2IiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2NhbGwvMnVicjBmNjN4ZGthdTctbSIsInIzX3MyNTYiOiIyVWJSMEY2M3hka0FVNy1tQUlyZl9IY2Zzd3lOUTRoZlR3XzdTVENOZzVBIiwiaWF0IjoxNzQxODI0MTAwLCJleHAiOjE3NDE4MjQyMDB9.cGVyQ2FsbFByb3Bvc2FsUmVzb3VyY2VUb2tlblNpZ25hdHVyZUV4YW1wbGU",
+          "header": {
+            "alg": "ES256",
+            "kid": "resource-key-2",
+            "typ": "aa-resource+jwt"
+          },
+          "payload": {
+            "iss": "https://calendar.example.com",
+            "dwk": "aauth-resource.json",
+            "aud": "https://as.example.com",
+            "jti": "rt-cond-9a3b",
+            "ps": "https://ps.example",
+            "sub": "e4da3b7fbbce2345d7772b0674a318d5",
+            "person_token_jti": "pt-8b41fd",
+            "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "r3_uri": "https://calendar.example.com/r3/call/2ubr0f63xdkau7-m",
+            "r3_s256": "2UbR0F63xdkAU7-mAIrf_HcfswyNQ4hfTw_7STCNg5A",
+            "iat": 1741824100,
+            "exp": 1741824200
+          },
+          "signature_b64": "cGVyQ2FsbFByb3Bvc2FsUmVzb3VyY2VUb2tlblNpZ25hdHVyZUV4YW1wbGU"
+        }
+      ],
+      "annotations": [
+        "The agent sends the proposal-backed resource token to its PS's auth_token_endpoint.",
+        "The agent still cannot read the proposal. It is carrying a reference to a document describing its own pending call, and cannot see what the resource said that call will do.",
+        "aud is the AS, so the PS federates. The agent never contacts the AS directly."
+      ],
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /auth-token\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-type",
+          "content-digest",
+          "signature-key"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "from": "ps",
+      "to": "as",
+      "label": "PS federates: POST /token + per-call resource token → per-call policy evaluation",
+      "method": "POST",
+      "url": "https://as.example.com/auth-token",
+      "request_headers": {
+        "Host": "as.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1741824102;alg=\"ed25519\"",
+        "Signature-Key": "sig=jwks_uri;jwks_uri=\"https://ps.example/.well-known/jwks.json\"",
+        "Signature": "sig=:UFNGZWRlcmF0ZXNDb25kaXRpb25hbFRva2VuVG9BU0Jhc2U2NA==:"
+      },
+      "request_body": {
+        "resource_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0yIiwidHlwIjoicmVzb3VyY2Urand0In0…"
+      },
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
+        "expires_in": 30
+      },
+      "tokens": [
+        {
+          "name": "Per-Call Auth Token",
+          "typ": "aa-auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtYWNjZXNzLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtcGVyY2FsbC1mNGMyIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJzdWIiOiJlNGRhM2I3ZmJiY2UyMzQ1ZDc3NzJiMDY3NGEzMThkNSIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIn19LCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2NhbGwvMnVicjBmNjN4ZGthdTctbSIsInIzX3MyNTYiOiIyVWJSMEY2M3hka0FVNy1tQUlyZl9IY2Zzd3lOUTRoZlR3XzdTVENOZzVBIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6ImNyZWF0ZV9jYWxlbmRhcl9ldmVudCJ9XX0sImlhdCI6MTc0MTgyNDEwMiwiZXhwIjoxNzQxODI0MTMyfQ.MEYCIQDper_call_auth_token_narrow_grant_display_only",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "aa-auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-access.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-percall-f4c2",
+            "ps": "https://ps.example",
+            "sub": "e4da3b7fbbce2345d7772b0674a318d5",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/call/2ubr0f63xdkau7-m",
+            "r3_s256": "2UbR0F63xdkAU7-mAIrf_HcfswyNQ4hfTw_7STCNg5A",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                {
+                  "tool": "create_calendar_event"
+                }
+              ]
+            },
+            "iat": 1741824102,
+            "exp": 1741824132
+          },
+          "signature_b64": "MEYCIQDper_call_auth_token_narrow_grant_display_only"
+        }
+      ],
+      "annotations": [
+        "The PS presents the resource token to the AS, which fetches the proposal at r3_uri and hashes the bytes it receives against r3_s256.",
+        "The AS evaluates parameters per policy; the PS renders display for the person's consent. Whether either machine-evaluates the parameters — auto-denying a payment over a threshold, say — is deployment policy. The parameters are in the proposal either way.",
+        "On approval the AS issues a per-call auth token that echoes the proposal's r3_uri and r3_s256 and lists the now-approved operation in r3_granted.",
+        "There is no separate binding claim. The reference IS the binding: the proposal's digest names one set of parameters, and the resource holds the bytes.",
+        "The token is narrow — one operation — and short-lived."
+      ],
+      "r3_document": {
+        "vocabulary": "urn:aauth:vocabulary:mcp",
+        "operations": [
+          {
+            "tool": "create_calendar_event"
+          }
+        ],
+        "parameters": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": [
+            "alice@example.com",
+            "cfo@example.com",
+            "ceo@example.com"
+          ],
+          "agenda": {
+            "s256": "3RkQ2mVvHhcXm4tX8s0nJ0hVQGmXaLZ5F1sZ3B7yqAo",
+            "excerpt": "1. Q2 actuals vs plan  2. Headcount …",
+            "media_type": "text/plain"
+          }
+        },
+        "display": {
+          "summary": "Create one calendar event and invite three people",
+          "irreversible": "Invitations are sent immediately and cannot be unsent",
+          "detail": "## Action\nCreate a calendar event\n\n## To\nalice@example.com, cfo@example.com, ceo@example.com\n\n## Details\nBudget Review, 2026-05-15 09:00–10:00 UTC\n\n## Content\n1. Q2 actuals vs plan  2. Headcount …\n\n## Irreversible\nInvitations are sent immediately and cannot be unsent"
+        }
+      }
+    },
+    {
+      "step": 4,
+      "from": "ps",
+      "to": "agent",
+      "label": "200 per-call auth token returned to agent",
+      "method": "RESPONSE",
+      "url": "https://ps.example/auth-token (response)",
+      "request_headers": {},
+      "request_body": null,
+      "response_status": 200,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
+        "expires_in": 30
+      },
+      "tokens": [
+        {
+          "name": "Per-Call Auth Token",
+          "typ": "aa-auth+jwt",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtYWNjZXNzLmpzb24iLCJhdWQiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwianRpIjoiYXQtcGVyY2FsbC1mNGMyIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJzdWIiOiJlNGRhM2I3ZmJiY2UyMzQ1ZDc3NzJiMDY3NGEzMThkNSIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIn19LCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2NhbGwvMnVicjBmNjN4ZGthdTctbSIsInIzX3MyNTYiOiIyVWJSMEY2M3hka0FVNy1tQUlyZl9IY2Zzd3lOUTRoZlR3XzdTVENOZzVBIiwicjNfZ3JhbnRlZCI6eyJ2b2NhYnVsYXJ5IjoidXJuOmFhdXRoOnZvY2FidWxhcnk6bWNwIiwib3BlcmF0aW9ucyI6W3sidG9vbCI6ImNyZWF0ZV9jYWxlbmRhcl9ldmVudCJ9XX0sImlhdCI6MTc0MTgyNDEwMiwiZXhwIjoxNzQxODI0MTMyfQ.MEYCIQDper_call_auth_token_narrow_grant_display_only",
+          "header": {
+            "alg": "ES256",
+            "kid": "as-key-1",
+            "typ": "aa-auth+jwt"
+          },
+          "payload": {
+            "iss": "https://as.example.com",
+            "dwk": "aauth-access.json",
+            "aud": "https://calendar.example.com",
+            "jti": "at-percall-f4c2",
+            "ps": "https://ps.example",
+            "sub": "e4da3b7fbbce2345d7772b0674a318d5",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
+              }
+            },
+            "r3_uri": "https://calendar.example.com/r3/call/2ubr0f63xdkau7-m",
+            "r3_s256": "2UbR0F63xdkAU7-mAIrf_HcfswyNQ4hfTw_7STCNg5A",
+            "r3_granted": {
+              "vocabulary": "urn:aauth:vocabulary:mcp",
+              "operations": [
+                {
+                  "tool": "create_calendar_event"
+                }
+              ]
+            },
+            "iat": 1741824102,
+            "exp": 1741824132
+          },
+          "signature_b64": "MEYCIQDper_call_auth_token_narrow_grant_display_only"
+        }
+      ],
+      "is_response": true,
+      "annotations": [
+        "The PS returns the per-call auth token to the agent.",
+        "r3_granted now covers create_calendar_event, and r3_uri/r3_s256 name the proposal that was approved.",
+        "The agent retries the call it was making."
+      ]
+    },
+    {
+      "step": 5,
+      "from": "agent",
+      "to": "resource",
+      "label": "Retry POST /mcp/tools/call with per-call auth token → 201 created",
+      "method": "POST",
+      "url": "https://calendar.example.com/mcp/tools/call",
+      "request_headers": {
+        "Host": "calendar.example.com",
+        "Content-Type": "application/json",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "Signature": "sig=:UjNBdXRoVG9rZW5QcmVzZW50ZWRWaWFTaWduYXR1cmVLZXlFeGFtcGxlQnl0ZXM:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:"
+      },
+      "request_body": {
+        "name": "create_calendar_event",
+        "arguments": {
+          "title": "Budget Review",
+          "start": "2026-05-15T09:00:00Z",
+          "end": "2026-05-15T10:00:00Z",
+          "attendees": [
+            "alice@example.com",
+            "cfo@example.com",
+            "ceo@example.com"
+          ]
+        }
+      },
+      "response_status": 201,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_body": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Event created: Budget Review on 2026-05-15 09:00–10:00 UTC. Invitations sent to alice@example.com, cfo@example.com, and ceo@example.com."
+          }
+        ]
+      },
+      "tokens": [],
+      "annotations": [
+        "The agent retries with the per-call auth token and the same parameters.",
+        "The resource recovers the proposal from its store via r3_s256 and MUST verify that the actual parameters match the approved ones.",
+        "For any parameter represented as a digest — the agenda here — it MUST verify BASE64URL(SHA-256(presented value)) equals the stored s256. If anything differs it MUST reject the call.",
+        "An approval to invite three named people cannot be replayed against a different invitee list, and an approval to email one recipient cannot be replayed against another."
+      ],
+      "signature": {
+        "scheme": "jwt",
+        "signature_base": "\"@method\": POST\n\"@authority\": calendar.example.com\n\"@path\": /mcp/tools/call\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000200;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-type",
+          "content-digest",
+          "signature-key"
+        ]
+      }
+    }
+  ],
+  "token_flow": [
+    {
+      "token": "auth_token_existing",
+      "label": "Existing Auth Token",
+      "tokenType": "aa-auth+jwt",
+      "accent": "auth",
+      "events": [
+        {
+          "step": 1,
+          "participant": "agent",
+          "label": "Presented; the operation matches r3_per_call",
+          "kind": "presented"
+        }
+      ]
+    },
+    {
+      "token": "resource_token_per-call",
+      "label": "Per-Call Resource Token",
+      "tokenType": "aa-resource+jwt",
+      "accent": "resource",
+      "events": [
+        {
+          "step": 1,
+          "participant": "resource",
+          "label": "Issued referencing the per-call proposal",
+          "kind": "issued"
+        },
+        {
+          "step": 2,
+          "participant": "agent",
+          "label": "Forwarded to Person Server",
+          "kind": "forwarded"
+        },
+        {
+          "step": 3,
+          "participant": "ps",
+          "label": "PS presents to Auth Server",
+          "kind": "presented"
+        }
+      ]
+    },
+    {
+      "token": "auth_token_percall",
+      "label": "Per-Call Auth Token",
+      "tokenType": "aa-auth+jwt",
+      "accent": "auth",
+      "events": [
+        {
+          "step": 3,
+          "participant": "as",
+          "label": "Issued narrow: one operation, short-lived",
+          "kind": "issued"
+        },
+        {
+          "step": 4,
+          "participant": "ps",
+          "label": "Returned to agent via PS",
+          "kind": "returned"
+        },
+        {
+          "step": 5,
+          "participant": "agent",
+          "label": "Presented for retry",
+          "kind": "presented"
+        }
+      ]
+    }
+  ]
+}

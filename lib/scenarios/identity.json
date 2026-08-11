@@ -1,8 +1,8 @@
 {
   "id": "identity",
   "title": "Agent Identity via JWKS (sig=jwks_uri)",
-  "description": "The agent signs requests and includes its identifier URI + key ID in Signature-Key. The resource fetches the agent's JWKS from its well-known endpoint to verify the signature, establishing cryptographic identity \u2014 the resource learns who the agent is.",
-  "spec_section": "\u00a7 Agent Identity",
+  "description": "The agent signs requests and includes its identifier URI + key ID in Signature-Key. The resource fetches the agent's JWKS from its well-known endpoint to verify the signature, establishing cryptographic identity — the resource learns who the agent is.",
+  "spec_section": "§ Agent Identity",
   "category": "signing",
   "demo_phase": 2,
   "participants": [
@@ -24,7 +24,7 @@
       "step": 1,
       "from": "agent",
       "to": "resource",
-      "label": "Unsigned GET /data-jwks \u2192 401",
+      "label": "Unsigned GET /data-jwks → 401",
       "method": "GET",
       "url": "https://api.example/data-jwks",
       "request_headers": {
@@ -51,7 +51,7 @@
       "step": 2,
       "from": "agent",
       "to": "resource",
-      "label": "Signed GET (sig=jwks_uri) \u2192 resource fetches JWKS",
+      "label": "Signed GET (sig=jwks_uri) → resource fetches JWKS",
       "method": "GET",
       "url": "https://api.example/data-jwks",
       "request_headers": {
@@ -73,7 +73,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJzdWIiOiJhYXV0aDpsb2NhbEAxMjcuMC4wLjEiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwianRpIjoiNGZkOTQ1NzMtODFjNC00MTVjLWEzMmUtOGQxOTA2NjRkMzdhIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Im1NVEtUVXMxc3liVnF4RWR0cE1rYWhPLTZWeUZGTWkxSkJlN1NBOGhPYTgiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.usKCURjsF74Gi423xuubqNzwbbU_wujxBwtWYFGpf-hZ9GZ2sJ0-sd9aj1Kw7VkFDmiLfwJcOxDvSNhDhx26Bg",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6IjRmZDk0NTczLTgxYzQtNDE1Yy1hMzJlLThkMTkwNjY0ZDM3YSIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJtTVRLVFVzMXN5YlZxeEVkdHBNa2FoTy02VnlGRk1pMUpCZTdTQThoT2E4Iiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.usKCURjsF74Gi423xuubqNzwbbU_wujxBwtWYFGpf-hZ9GZ2sJ0-sd9aj1Kw7VkFDmiLfwJcOxDvSNhDhx26Bg",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -81,8 +81,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "4fd94573-81c4-415c-a32e-8d190664d37a",
             "cnf": {
               "jwk": {
@@ -114,7 +114,7 @@
         "Signature-Key contains id=\"https://agent.example\" and kid=\"agent-key-1\".",
         "Resource resolves /.well-known/aauth-agent on the agent's host to find jwks_uri.",
         "Resource fetches JWKS, matches key by kid, verifies signature.",
-        "Unlike hwk: resource now knows the full agent identifier \u2014 identity, not pseudonymity."
+        "Unlike hwk: resource now knows the full agent identifier — identity, not pseudonymity."
       ],
       "is_response": false
     },
@@ -145,7 +145,7 @@
       "signature": null,
       "annotations": [
         "Resource discovers the agent's metadata from the id in Signature-Key.",
-        "Metadata contains jwks_uri \u2014 where public keys are published."
+        "Metadata contains jwks_uri — where public keys are published."
       ],
       "is_response": true
     },
@@ -153,7 +153,7 @@
       "step": 4,
       "from": "resource",
       "to": "agent",
-      "label": "Fetch /jwks.json \u2192 verify signature",
+      "label": "Fetch /jwks.json → verify signature",
       "method": "GET",
       "url": "https://agent.example/jwks.json",
       "request_headers": {
@@ -178,7 +178,7 @@
       "signature": null,
       "annotations": [
         "Resource matches key by kid=\"agent-key-1\" and verifies the HTTP Message Signature.",
-        "JKT = Lr-JK2lDdxXXHHAZuqP7_WHo\u2026 (SHA-256 thumbprint of the public key JWK)."
+        "JKT = Lr-JK2lDdxXXHHAZuqP7_WHo… (SHA-256 thumbprint of the public key JWK)."
       ],
       "is_response": true
     }
