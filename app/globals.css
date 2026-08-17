@@ -145,6 +145,12 @@
   html {
     @apply font-sans;
   }
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
 }
 
 /* Scrollbar styling */

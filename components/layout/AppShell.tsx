@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const EXT_LINKS = [
   { label: "AAuth.dev", href: "https://aauth.dev" },
@@ -50,7 +51,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <img src="/logo.svg" alt="AAuth Explorer" className="h-5 w-auto" />
           </Link>
         </div>
-        <nav className="flex items-center gap-5 -mb-1.5">
+        <nav className="flex items-center gap-2 sm:gap-3 -mb-1.5">
+          <ThemeToggle />
           {EXT_LINKS.map((link) => (
             <a
               key={link.href}
