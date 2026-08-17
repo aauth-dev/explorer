@@ -79,7 +79,7 @@
         {
           "name": "jkt-jwt",
           "typ": "jkt+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjphYmMxMjNlbmNsYXZldGh1bWJwcmludCIsInR5cCI6ImprdCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDA5MDAwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.ZW5jbGF2ZV9zaWduYXR1cmVfb3Zlcl9uZXdfZXBoZW1lcmFsX2tleQ",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjphYmMxMjNlbmNsYXZldGh1bWJwcmludCIsInR5cCI6ImprdCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDA5MDAwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdFpYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19fQ.ZW5jbGF2ZV9zaWduYXR1cmVfb3Zlcl9uZXdfZXBoZW1lcmFsX2tleQ",
           "header": {
             "alg": "ES256",
             "kid": "urn:jkt:sha-256:abc123enclavethumbprint",
@@ -133,7 +133,7 @@
         {
           "name": "Agent Token (renewed)",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJzdWIiOiJhYXV0aDpsb2NhbEBhZ2VudC5leGFtcGxlIiwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJ1c2VyX3N1YiI6InVzZXJfc3ViXzEyMzQ1NiIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdGVYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19LCJpYXQiOjE3MDAwODY0MDAsImV4cCI6MTcwMDE3MjgwMH0.cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXByb3ZpZGVyLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6InJlbmV3YWwtdG9rZW4tMjM0NTY3IiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImJtVjNYMlZ3YUdWdFpYSmhiRjlyWlhsZmNIVmliR2xqWDJobGNtVSIsImtpZCI6ImFnZW50LWtleS0yIn19LCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImlhdCI6MTcwMDA4NjQwMCwiZXhwIjoxNzAwMTcyODAwfQ.cmVuZXdhbF9hZ2VudF9zZXJ2ZXJfc2lnbmF0dXJlX2hlcmU",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-provider-key-1",
@@ -143,7 +143,6 @@
             "iss": "https://agent.example",
             "dwk": "aauth-agent.json",
             "sub": "aauth:local@agent.example",
-            "ps": "https://ps.example",
             "jti": "renewal-token-234567",
             "cnf": {
               "jwk": {
@@ -153,6 +152,7 @@
                 "kid": "agent-key-2"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1700086400,
             "exp": 1700172800
           },
@@ -164,7 +164,11 @@
         "signature_base": "\"@method\": POST\n\"@authority\": agent.example\n\"@path\": /refresh\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\");created=1700086400;alg=\"ed25519\";keyid=\"agent-key-2\"",
         "signature_key": "sig=jkt-jwt;jwt=\"<jkt-jwt-token>\"",
-        "covered_components": ["@method", "@authority", "@path"]
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path"
+        ]
       },
       "annotations": [
         "The new ephemeral key signs the HTTP message (standard RFC 9421 signature).",

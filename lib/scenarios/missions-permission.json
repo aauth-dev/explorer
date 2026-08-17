@@ -59,7 +59,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -67,8 +67,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -78,9 +78,9 @@
                 "kid": "agent-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1776222894,
-            "exp": 1776226494,
-            "ps": "https://ps.example"
+            "exp": 1776226494
           },
           "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
         }
@@ -286,7 +286,7 @@
     ]
   },
   "interactive": {
-    "description": "Same endpoint, now bound to an active mission. The mission's `approved_tools` (§1303) let the agent **skip /permission entirely** for FeedbackReader and ReportWriter. For anything else, the agent calls /permission with a `mission` field, and the PS evaluates against mission scope + log history (§1028) and records every request in the mission log (§1075). Compare with the no-mission flow on the left: the *shape* of the requests and responses is identical — the mission binding just changes the policy basis the PS uses.",
+    "description": "The same three requests, this time inside a mission. Each names mission_s256, so the PS evaluates them against the approved description, the approved tool list and the mission log rather than against standing policy alone — and records each decision in that log.",
     "participants": [
       {
         "id": "agent",
@@ -305,23 +305,28 @@
       }
     ],
     "mission_blob": {
-      "title": "Mission this permission flow runs under",
-      "description": "FeedbackReader and ReportWriter are pre-approved — the agent does NOT call /permission for those. Other actions (SendEmail, PublishToSocial, DeleteAllRecords) must be asked per-call.",
+      "title": "Mission in force",
+      "description": "The approved mission these permission requests are evaluated against.",
       "markdown": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
       "approver": "https://ps.example",
       "agent": "aauth:local@agent.example",
       "approved_at": "2026-04-14T17:14:54Z",
+      "expires_at": "2026-05-14T17:14:54Z",
       "approved_tools": [
         {
           "name": "FeedbackReader",
-          "description": "Read customer feedback records — pre-approved, no /permission call needed"
+          "description": "Read customer feedback records"
         },
         {
           "name": "ReportWriter",
-          "description": "Write the summary report to the shared drive — pre-approved, no /permission call needed"
+          "description": "Write the summary report to the shared drive"
         }
       ],
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
+      "approved_resources": [
+        "https://api.example"
+      ],
+      "encoded": "eyJhcHByb3ZlciI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImFnZW50IjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImFwcHJvdmVkX2F0IjoiMjAyNi0wNC0xNFQxNzoxNDo1NFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNS0xNFQxNzoxNDo1NFoiLCJkZXNjcmlwdGlvbiI6IiMgQW5hbHl6ZSBRMiBDdXN0b21lciBGZWVkYmFja1xuXG5SZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMgYW5kIHByb2R1Y2UgYSBzdW1tYXJ5IHJlcG9ydCB3aXRoIHNlbnRpbWVudCBhbmFseXNpcyBhbmQga2V5IHRoZW1lcy4iLCJhcHByb3ZlZF90b29scyI6W3sibmFtZSI6IkZlZWRiYWNrUmVhZGVyIiwiZGVzY3JpcHRpb24iOiJSZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMifSx7Im5hbWUiOiJSZXBvcnRXcml0ZXIiLCJkZXNjcmlwdGlvbiI6IldyaXRlIHRoZSBzdW1tYXJ5IHJlcG9ydCB0byB0aGUgc2hhcmVkIGRyaXZlIn1dLCJhcHByb3ZlZF9yZXNvdXJjZXMiOlsiaHR0cHM6Ly9hcGkuZXhhbXBsZSJdfQ",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
       "capabilities": [
         "interaction",
         "clarification"
@@ -349,10 +354,7 @@
             "subject": "Q2 customer feedback summary",
             "attachment": "/drive/reports/q2-feedback-summary.pdf"
           },
-          "mission": {
-            "approver": "https://ps.example",
-            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-          }
+          "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg"
         },
         "response_status": 200,
         "response_headers": {
@@ -365,7 +367,7 @@
           {
             "name": "Agent Token",
             "typ": "aa-agent+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
             "header": {
               "alg": "EdDSA",
               "kid": "agent-key-1",
@@ -373,8 +375,8 @@
             },
             "payload": {
               "iss": "https://agent.example",
-              "sub": "aauth:local@agent.example",
               "dwk": "aauth-agent.json",
+              "sub": "aauth:local@agent.example",
               "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
               "cnf": {
                 "jwk": {
@@ -384,9 +386,9 @@
                   "kid": "agent-key-1"
                 }
               },
+              "ps": "https://ps.example",
               "iat": 1776222894,
-              "exp": 1776226494,
-              "ps": "https://ps.example"
+              "exp": 1776226494
             },
             "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
           }
@@ -404,10 +406,10 @@
           ]
         },
         "annotations": [
-          "Agent signs the request with its agent token via Signature-Key: sig=jwt (§1021).",
-          "SendEmail is NOT in `approved_tools`, so the agent MUST ask (§1017). FeedbackReader / ReportWriter would have been used WITHOUT calling /permission.",
-          "Because a mission is bound, the PS evaluates against the mission's context and log history (§1028).",
-          "PS returns 200 `granted` (§1068) and records this request in the mission log (§1075)."
+          "mission_s256 is OPTIONAL on the permission endpoint. When present, the PS evaluates the request against the mission context and the log history.",
+          "SendEmail is on the mission's approved_tools list, so the PS decides immediately: 200 permission=granted.",
+          "Nothing in the protocol enforces approved_tools — it is what the person agreed to in advance, and the PS is free to ask anyway.",
+          "The PS records the request and the response in the mission log."
         ],
         "is_response": false
       },
@@ -431,10 +433,7 @@
             "channel": "linkedin",
             "text": "Q2 customer feedback highlights — see thread for the top three themes…"
           },
-          "mission": {
-            "approver": "https://ps.example",
-            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-          }
+          "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg"
         },
         "response_status": 202,
         "response_headers": {
@@ -539,10 +538,7 @@
             "table": "feedback_q2_raw",
             "rows": "all"
           },
-          "mission": {
-            "approver": "https://ps.example",
-            "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-          }
+          "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg"
         },
         "response_status": 200,
         "response_headers": {
@@ -555,9 +551,9 @@
         "tokens": [],
         "signature": null,
         "annotations": [
-          "With a mission bound, the PS has a much sharper scope check: the mission authorized read+summarize, not destruction (§1069).",
-          "Contrast with the no-mission case where the same deny came from a standing rule. Same outcome, different policy basis.",
-          "If the mission were terminated, the PS would instead return a mission status error (§1071) — see the Audit Endpoint demo for the `mission_terminated` shape."
+          "DeleteAllRecords is not on the approved tool list and standing policy forbids destructive bulk operations, so the PS denies without troubling the person.",
+          "reason is a Markdown string the agent can surface or log.",
+          "If the mission were no longer active, this would be 403 mission_terminated instead."
         ],
         "is_response": false
       }

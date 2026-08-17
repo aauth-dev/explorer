@@ -1,8 +1,8 @@
 {
   "id": "missions-end-to-end",
   "title": "Full Mission Lifecycle (End-to-End)",
-  "description": "The complete mission lifecycle in a four-party federated deployment, from PS discovery through resource access. Mission approval requires user interaction \u2014 the PS returns 202 with an interaction URL so the user can review the description and tools. Once approved, the s256 mission fingerprint flows unchanged through every token and header: proposal \u2192 AAuth-Mission \u2192 resource token (aud=AS) \u2192 auth token (iss=AS) \u2192 final access check.",
-  "spec_section": "\u00a7 Mission Lifecycle",
+  "description": "The complete mission lifecycle in a four-party deployment, from PS discovery to resource access. The mission is approved with a person token attached for the resource it named; the agent presents that person token at the resource's authorization endpoint; mission_s256 flows person token → resource token → auth token, one digest the whole way.",
+  "spec_section": "§ Mission Lifecycle",
   "category": "missions",
   "demo_phase": 12,
   "participants": [
@@ -34,11 +34,12 @@
   ],
   "mission_blob": {
     "title": "Approved Mission Blob",
-    "description": "Full lifecycle mission approved by the user via PS interaction.",
+    "description": "The bytes the PS persisted, returned base64url-encoded as `mission`.",
     "markdown": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
     "approver": "https://ps.example",
     "agent": "aauth:local@agent.example",
     "approved_at": "2026-04-14T17:14:54Z",
+    "expires_at": "2026-05-14T17:14:54Z",
     "approved_tools": [
       {
         "name": "FeedbackReader",
@@ -49,7 +50,11 @@
         "description": "Write the summary report to the shared drive"
       }
     ],
-    "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
+    "approved_resources": [
+      "https://api.example"
+    ],
+    "encoded": "eyJhcHByb3ZlciI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImFnZW50IjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImFwcHJvdmVkX2F0IjoiMjAyNi0wNC0xNFQxNzoxNDo1NFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNS0xNFQxNzoxNDo1NFoiLCJkZXNjcmlwdGlvbiI6IiMgQW5hbHl6ZSBRMiBDdXN0b21lciBGZWVkYmFja1xuXG5SZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMgYW5kIHByb2R1Y2UgYSBzdW1tYXJ5IHJlcG9ydCB3aXRoIHNlbnRpbWVudCBhbmFseXNpcyBhbmQga2V5IHRoZW1lcy4iLCJhcHByb3ZlZF90b29scyI6W3sibmFtZSI6IkZlZWRiYWNrUmVhZGVyIiwiZGVzY3JpcHRpb24iOiJSZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMifSx7Im5hbWUiOiJSZXBvcnRXcml0ZXIiLCJkZXNjcmlwdGlvbiI6IldyaXRlIHRoZSBzdW1tYXJ5IHJlcG9ydCB0byB0aGUgc2hhcmVkIGRyaXZlIn1dLCJhcHByb3ZlZF9yZXNvdXJjZXMiOlsiaHR0cHM6Ly9hcGkuZXhhbXBsZSJdfQ",
+    "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
     "capabilities": [
       "interaction",
       "clarification"
@@ -57,37 +62,51 @@
   },
   "s256_chain": [
     {
-      "label": "Mission Proposal",
-      "source": "POST /mission body (pre-approval)",
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-      "detail": "On approval, PS computes SHA-256(approved_blob_bytes) = s256."
+      "label": "Mission blob bytes",
+      "source": "PS serializes the approved mission once and persists those exact bytes",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "s256 = BASE64URL(SHA-256(bytes)). The PS returns the same bytes base64url-encoded as the `mission` member, so the agent can recompute the digest itself."
     },
     {
-      "label": "User Approval",
-      "source": "AAuth-Mission header on approved-mission response",
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-      "detail": "User approves at PS; PS returns the blob + AAuth-Mission header carrying s256."
+      "label": "mission_s256 in the person token",
+      "source": "PS stamps it when the agent names the mission at the person token endpoint",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "The agent asks for a person token with mission_s256; the PS verifies the mission exists, is active and belongs to this agent, then puts the value in the token."
     },
     {
-      "label": "Resource Token Claim",
-      "source": "aa-resource+jwt mission.s256 (aud=AS)",
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-      "detail": "Resource embeds the same s256 in the resource token it issues for proactive authorization."
+      "label": "mission_s256 in the resource token",
+      "source": "Resource copies it out of the person token it verified",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. person_token_jti names the exact token it was copied from."
     },
     {
-      "label": "Auth Token Claim",
-      "source": "aa-auth+jwt mission.s256 (iss=AS)",
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-      "detail": "The Access Server preserves mission.s256 in the auth token after federation."
-    },
-    {
-      "label": "Final Access Check",
-      "source": "AAuth-Mission header + aa-auth+jwt",
-      "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-      "detail": "Resource compares AAuth-Mission s256 with auth token mission.s256 \u2014 end-to-end chain verified."
+      "label": "mission_s256 in the auth token",
+      "source": "Issuer copies it from the resource token",
+      "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+      "detail": "The resource reads the mission only here. It never arrives as a header and is never agent-asserted."
     }
   ],
   "token_flow": [
+    {
+      "token": "person-token",
+      "label": "Person Token",
+      "tokenType": "aa-person+jwt",
+      "accent": "auth",
+      "events": [
+        {
+          "step": 4,
+          "participant": "ps",
+          "label": "Issued with mission_s256 for this resource",
+          "kind": "issued"
+        },
+        {
+          "step": 5,
+          "participant": "resource",
+          "label": "Presented; mission_s256 copied into the resource token",
+          "kind": "presented"
+        }
+      ]
+    },
     {
       "token": "resource-token",
       "label": "Resource Token",
@@ -97,7 +116,7 @@
         {
           "step": 5,
           "participant": "resource",
-          "label": "Issued with mission claim (aud=AS)",
+          "label": "Issued with mission_s256 (aud=AS)",
           "kind": "issued"
         },
         {
@@ -117,7 +136,7 @@
         {
           "step": 6,
           "participant": "as",
-          "label": "Minted with mission claim intact (iss=AS)",
+          "label": "mission_s256 copied through unchanged (iss=AS)",
           "kind": "issued"
         },
         {
@@ -148,7 +167,7 @@
         "step": 4,
         "status": 200,
         "label": "Mission approved",
-        "detail": "Agent polls pending URL \u2014 PS returns mission blob + AAuth-Mission header"
+        "detail": "Agent polls pending URL — PS returns {s256, mission, capabilities, person_tokens}"
       },
       {
         "step": 7,
@@ -176,8 +195,10 @@
       },
       "response_body": {
         "person_server": "https://ps.example",
-        "token_endpoint": "https://ps.example/token",
+        "auth_token_endpoint": "https://ps.example/auth-token",
+        "person_token_endpoint": "https://ps.example/person",
         "mission_endpoint": "https://ps.example/mission",
+        "mission_control_endpoint": "https://ps.example/mission-control",
         "interaction_endpoint": "https://ps.example/interaction",
         "audit_endpoint": "https://ps.example/audit",
         "permission_endpoint": "https://ps.example/permission",
@@ -186,8 +207,11 @@
       "tokens": [],
       "signature": null,
       "annotations": [
-        "Agent fetches PS well-known metadata to discover the mission_endpoint.",
-        "mission_endpoint is where the agent POSTs mission proposals for approval."
+        "The agent fetches PS well-known metadata to discover the endpoints it needs.",
+        "mission_endpoint is where the agent proposes missions, and where it later POSTs updates and its completion proposal at {mission_endpoint}/{mission_s256}.",
+        "person_token_endpoint is REQUIRED in -11: every PS MUST publish one and MUST issue person tokens from it.",
+        "auth_token_endpoint was called token_endpoint before -11.",
+        "mission_control_endpoint is the control plane — where parties other than the owning agent read and manage missions. Its operations are left to a companion specification."
       ],
       "is_response": false
     },
@@ -195,14 +219,16 @@
       "step": 2,
       "from": "agent",
       "to": "ps",
-      "label": "POST /mission (sig=jwt) \u2192 202 + user interaction required",
+      "label": "POST /mission (sig=jwt) → 202 + user interaction required",
       "method": "POST",
       "url": "https://ps.example/mission",
       "request_headers": {
+        "Host": "ps.example",
         "Content-Type": "application/json",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgo:"
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": {
         "description": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
@@ -215,6 +241,9 @@
             "name": "ReportWriter",
             "description": "Write the summary report to the shared drive"
           }
+        ],
+        "resources": [
+          "https://api.example"
         ]
       },
       "response_status": 202,
@@ -231,7 +260,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -239,8 +268,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -250,30 +279,32 @@
                 "kid": "agent-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1776222894,
-            "exp": 1776226494,
-            "ps": "https://ps.example"
+            "exp": 1776226494
           },
           "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /mission\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /mission\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
+          "content-type",
+          "content-digest",
           "signature-key"
         ]
       },
       "annotations": [
-        "Agent sends the mission proposal signed with its agent token.",
-        "AAuth-Capabilities is NOT sent on PS endpoints (\u00a71731).",
-        "PS cannot approve without user consent \u2014 returns 202 Accepted.",
-        "AAuth-Requirement carries the interaction URL where the user will review the mission."
+        "The agent sends the mission proposal signed with its agent token.",
+        "resources names the resources the agent expects to use, so the PS can put them in front of the person and return a person token for each it approves.",
+        "AAuth-Capabilities is not used on PS endpoints; capabilities travel in the request body.",
+        "The PS returns 202 — it needs the person's consent."
       ],
       "is_response": false
     },
@@ -281,7 +312,7 @@
       "step": 3,
       "from": "user",
       "to": "ps",
-      "label": "User reviews mission at interaction URL \u2192 approves",
+      "label": "User reviews mission at interaction URL → approves",
       "method": "GET",
       "url": "https://ps.example/interact/e2e9f3c7?code=E2E9-F3C7",
       "request_headers": {
@@ -292,13 +323,13 @@
       "response_headers": {
         "Content-Type": "text/html"
       },
-      "response_body": "<div class=\"consent-page\"><h1>Review Agent Mission</h1><h2>Analyze Q2 Customer Feedback</h2><p>The agent <strong>aauth:local@agent.example</strong> is requesting approval for the following mission:</p><blockquote>Read customer feedback records and produce a summary report with sentiment analysis and key themes.</blockquote><h3>Tools the agent will use:</h3><ul><li><strong>FeedbackReader</strong> \u2014 Read customer feedback records</li><li><strong>ReportWriter</strong> \u2014 Write the summary report to the shared drive</li></ul><div class=\"actions\"><button class=\"approve\">Approve Mission</button><button class=\"deny\">Deny</button></div></div>",
+      "response_body": "<div class=\"consent-page\"><h1>Review Agent Mission</h1><h2>Analyze Q2 Customer Feedback</h2><p>The agent <strong>aauth:local@agent.example</strong> is requesting approval for the following mission:</p><blockquote>Read customer feedback records and produce a summary report with sentiment analysis and key themes.</blockquote><h3>Tools the agent will use:</h3><ul><li><strong>FeedbackReader</strong> — Read customer feedback records</li><li><strong>ReportWriter</strong> — Write the summary report to the shared drive</li></ul><div class=\"actions\"><button class=\"approve\">Approve Mission</button><button class=\"deny\">Deny</button></div></div>",
       "tokens": [],
       "signature": null,
       "annotations": [
         "User opens the interaction URL from a PS notification or in-app prompt.",
         "PS shows the full mission description and tool list for human review.",
-        "User clicks Approve \u2014 PS records the approval and marks the mission blob as approved."
+        "User clicks Approve — PS records the approval and marks the mission blob as approved."
       ],
       "is_response": false
     },
@@ -306,47 +337,69 @@
       "step": 4,
       "from": "agent",
       "to": "ps",
-      "label": "Poll /pending/e2e9f3c7 \u2192 200 + AAuth-Mission",
+      "label": "Poll /pending/e2e9f3c7 → 200 + approval response",
       "method": "GET",
       "url": "https://ps.example/pending/e2e9f3c7",
       "request_headers": {
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1NTU1:"
       },
       "request_body": null,
       "response_status": 200,
       "response_headers": {
-        "Content-Type": "application/json",
-        "AAuth-Mission": "approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\""
+        "Content-Type": "application/json"
       },
       "response_body": {
-        "approver": "https://ps.example",
-        "agent": "aauth:local@agent.example",
-        "approved_at": "2026-04-14T17:14:54Z",
-        "description": "# Analyze Q2 Customer Feedback\n\nRead customer feedback records and produce a summary report with sentiment analysis and key themes.",
-        "approved_tools": [
-          {
-            "name": "FeedbackReader",
-            "description": "Read customer feedback records"
-          },
-          {
-            "name": "ReportWriter",
-            "description": "Write the summary report to the shared drive"
-          }
-        ],
+        "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+        "mission": "eyJhcHByb3ZlciI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImFnZW50IjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImFwcHJvdmVkX2F0IjoiMjAyNi0wNC0xNFQxNzoxNDo1NFoiLCJleHBpcmVzX2F0IjoiMjAyNi0wNS0xNFQxNzoxNDo1NFoiLCJkZXNjcmlwdGlvbiI6IiMgQW5hbHl6ZSBRMiBDdXN0b21lciBGZWVkYmFja1xuXG5SZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMgYW5kIHByb2R1Y2UgYSBzdW1tYXJ5IHJlcG9ydCB3aXRoIHNlbnRpbWVudCBhbmFseXNpcyBhbmQga2V5IHRoZW1lcy4iLCJhcHByb3ZlZF90b29scyI6W3sibmFtZSI6IkZlZWRiYWNrUmVhZGVyIiwiZGVzY3JpcHRpb24iOiJSZWFkIGN1c3RvbWVyIGZlZWRiYWNrIHJlY29yZHMifSx7Im5hbWUiOiJSZXBvcnRXcml0ZXIiLCJkZXNjcmlwdGlvbiI6IldyaXRlIHRoZSBzdW1tYXJ5IHJlcG9ydCB0byB0aGUgc2hhcmVkIGRyaXZlIn1dLCJhcHByb3ZlZF9yZXNvdXJjZXMiOlsiaHR0cHM6Ly9hcGkuZXhhbXBsZSJdfQ",
         "capabilities": [
           "interaction",
           "clarification"
-        ]
+        ],
+        "person_tokens": {
+          "https://api.example": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…"
+        }
       },
-      "tokens": [],
+      "tokens": [
+        {
+          "name": "Person Token",
+          "typ": "aa-person+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJzdWIiOiI4ZjE0ZTQ1ZmNlZWExNjdhNWEzNmRlZGQ0YmVhMjU0MyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJqdGkiOiJwdC0zMmQ2NTMiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "ps-key-1",
+            "typ": "aa-person+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://api.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                "kid": "agent-key-1"
+              }
+            },
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "jti": "pt-32d653",
+            "iat": 1776222894,
+            "exp": 1776226494
+          },
+          "signature_b64": "cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ"
+        }
+      ],
       "signature": null,
       "annotations": [
-        "User has approved \u2014 next poll returns 200 with the approved mission blob.",
-        "Blob has REQUIRED fields: approver, agent, approved_at, description (\u00a71261).",
-        "AAuth-Mission header: approver URL + s256 = SHA-256 over exact response body bytes.",
-        "Agent verifies the hash and stores the bytes as received \u2014 no re-serialization (\u00a71273)."
+        "The person approved — the next poll returns 200 with the approval response.",
+        "The response is {s256, mission, capabilities, person_tokens}. It is NOT the bare blob: -11 moved the blob into a base64url `mission` member so the digest covers an unambiguous byte sequence.",
+        "The agent decodes `mission`, computes SHA-256 over the decoded bytes, and compares the unpadded base64url result to `s256`. Verification is a SHOULD, and the agent may then store the mission however it likes.",
+        "capabilities is NOT part of the blob and is not covered by the digest. It says whether the PS can currently reach the person — this moment, not a term of the mission.",
+        "person_tokens is present because the proposal named `resources`: one mission-scoped person token per approved resource, each carrying mission_s256, sparing the agent a request each.",
+        "The blob carries approver, agent, approved_at and description as a floor, and MAY carry expires_at, approved_tools and approved_resources. A reader ignores members it does not recognize."
       ],
       "is_response": false
     },
@@ -354,16 +407,16 @@
       "step": 5,
       "from": "agent",
       "to": "resource",
-      "label": "POST /authorize + AAuth-Mission \u2192 resource token",
+      "label": "POST /authorize with the mission-scoped person token → resource token (aud=AS)",
       "method": "POST",
       "url": "https://api.example/authorize",
       "request_headers": {
+        "Host": "api.example",
         "Content-Type": "application/json",
-        "AAuth-Mission": "approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"",
-        "AAuth-Capabilities": "interaction, clarification",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:AQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQID:"
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": {
         "scope": "read"
@@ -373,13 +426,42 @@
         "Content-Type": "application/json"
       },
       "response_body": {
-        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026"
+        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
       },
       "tokens": [
         {
+          "name": "Person Token",
+          "typ": "aa-person+jwt",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9.eyJpc3MiOiJodHRwczovL3BzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1wZXJzb24uanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJzdWIiOiI4ZjE0ZTQ1ZmNlZWExNjdhNWEzNmRlZGQ0YmVhMjU0MyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJqdGkiOiJwdC0zMmQ2NTMiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ",
+          "header": {
+            "alg": "EdDSA",
+            "kid": "ps-key-1",
+            "typ": "aa-person+jwt"
+          },
+          "payload": {
+            "iss": "https://ps.example",
+            "dwk": "aauth-person.json",
+            "aud": "https://api.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "cnf": {
+              "jwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": "T_1-DXNIxIv0tFEqrD9q4LHu4VcHJgsiDPN__R1_Y2U",
+                "kid": "agent-key-1"
+              }
+            },
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "jti": "pt-32d653",
+            "iat": 1776222894,
+            "exp": 1776226494
+          },
+          "signature_b64": "cGVyc29uVG9rZW5TaWduYXR1cmVJc3N1ZWRCeVRoZVBlcnNvblNlcnZlckV4YW1wbGVWYWx1ZQ"
+        },
+        {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -387,25 +469,24 @@
           },
           "payload": {
             "iss": "https://api.example",
-            "aud": "https://as.example",
             "dwk": "aauth-resource.json",
+            "aud": "https://as.example",
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
-            "agent": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "person_token_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
             "iat": 1776222894,
-            "exp": 1776223494,
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "exp": 1776223494
           },
           "signature_b64": "ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw"
         },
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -413,8 +494,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -424,32 +505,32 @@
                 "kid": "agent-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1776222894,
-            "exp": 1776226494,
-            "ps": "https://ps.example"
+            "exp": 1776226494
           },
           "signature_b64": "8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": POST\n\"@authority\": api.example\n\"@path\": /authorize\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"aauth-mission\": approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_base": "\"@method\": POST\n\"@authority\": api.example\n\"@path\": /authorize\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000060;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6InBzLWtleS0xIiwidHlwIjoiYWEtcGVyc29uK2p3dCJ9…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
-          "signature-key",
-          "aauth-mission"
+          "content-type",
+          "content-digest",
+          "signature-key"
         ]
       },
       "annotations": [
-        "With the approved mission in hand, the agent proactively requests authorization.",
-        "Resource verifies the agent identity and the AAuth-Mission s256, then issues a four-party resource token (aud=AS).",
-        "aauth-mission is in the covered components per \u00a7588.",
-        "AAuth-Capabilities is included on resource requests per \u00a71731.",
-        "Resource token payload includes mission: {approver, s256} \u2014 the chain begins."
+        "The agent presents the person token that came back with the approval — no separate request needed.",
+        "The resource MUST have verified a person token before it issues a resource token. mission_s256 arrives inside it; there is no AAuth-Mission header in -11.",
+        "The resource issues aud=AS (four-party) and copies ps, sub, person_token_jti and mission_s256 into the resource token.",
+        "AAuth-Capabilities is still a resource-request header — that has not changed."
       ],
       "is_response": false
     },
@@ -457,31 +538,33 @@
       "step": 6,
       "from": "agent",
       "to": "ps",
-      "label": "POST /token \u2192 PS federates to AS \u2192 auth token",
+      "label": "POST /token → PS federates to AS → auth token",
       "method": "POST",
-      "url": "https://ps.example/token",
+      "url": "https://ps.example/auth-token",
       "request_headers": {
+        "Host": "ps.example",
         "Content-Type": "application/json",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:AgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgMEAgME:"
+        "Content-Digest": "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:"
       },
       "request_body": {
-        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026"
+        "resource_token": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0…"
       },
       "response_status": 200,
       "response_headers": {
         "Content-Type": "application/json"
       },
       "response_body": {
-        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+        "auth_token": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…",
         "expires_in": 3600
       },
       "tokens": [
         {
           "name": "Auth Token",
           "typ": "aa-auth+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hY2Nlc3MuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJqdGkiOiJmNTFjZjlkNy02YmRmLTQ5OTctODhiZS0xZjJjMjc3MTRjYTUiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6IjhmMTRlNDVmY2VlYTE2N2E1YTM2ZGVkZDRiZWEyNTQzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwic2NvcGUiOiJyZWFkIiwibWlzc2lvbl9zMjU2IjoiN1NHVEZzdUtDY3BZSndHUmtWQmk4dk9jMVNzbTdOZGduVmFBcnVLODdSZyIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw",
           "header": {
             "alg": "EdDSA",
             "kid": "as-key-1",
@@ -489,9 +572,11 @@
           },
           "payload": {
             "iss": "https://as.example",
-            "aud": "https://api.example",
             "dwk": "aauth-access.json",
+            "aud": "https://api.example",
             "jti": "f51cf9d7-6bdf-4997-88be-1f2c27714ca5",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
             "cnf": {
               "jwk": {
                 "kty": "OKP",
@@ -500,24 +585,17 @@
                 "kid": "agent-key-1"
               }
             },
-            "iat": 1776222894,
-            "exp": 1776226494,
-            "agent": "aauth:local@agent.example",
-            "act": {
-              "sub": "aauth:local@agent.example"
-            },
             "scope": "read",
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "iat": 1776222894,
+            "exp": 1776226494
           },
           "signature_b64": "AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw"
         },
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -525,39 +603,40 @@
           },
           "payload": {
             "iss": "https://api.example",
-            "aud": "https://as.example",
             "dwk": "aauth-resource.json",
+            "aud": "https://as.example",
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
-            "agent": "aauth:local@agent.example",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
+            "person_token_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
             "iat": 1776222894,
-            "exp": 1776223494,
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "exp": 1776223494
           },
           "signature_b64": "ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /token\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_base": "\"@method\": POST\n\"@authority\": ps.example\n\"@path\": /auth-token\n\"content-type\": application/json\n\"content-digest\": sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-type\" \"content-digest\" \"signature-key\");created=1700000120;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
+          "content-type",
+          "content-digest",
           "signature-key"
         ]
       },
       "annotations": [
-        "Agent submits the mission-bound resource token (aud=AS) to the PS.",
-        "PS federates to the AS internally (signed with PS's identity, sig=jwks_uri) \u2014 see Resource Access demo for the PS\u2192AS round-trip detail.",
-        "AS verifies the PS is trusted (\u00a71440), inspects the resource token mission claim, and mints an auth token.",
-        "The aa-auth+jwt has iss=AS, dwk=aauth-access.json, and carries mission: {approver, s256} unchanged \u2014 chain link three."
+        "The agent submits the mission-bound resource token to the PS's auth_token_endpoint (token_endpoint before -11).",
+        "The PS resolves the person token named by person_token_jti and rejects any mismatch in ps, sub, mission_s256 or tenant.",
+        "It then federates to the AS, signing with its own identity and passing the agent token alongside the resource token.",
+        "The AS copies mission_s256 into the auth token unchanged. iss=AS, dwk=aauth-access.json."
       ],
       "is_response": false
     },
@@ -565,15 +644,15 @@
       "step": 7,
       "from": "agent",
       "to": "resource",
-      "label": "GET /data + auth token + AAuth-Mission \u2192 200",
+      "label": "GET /data with the auth token → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
-        "AAuth-Mission": "approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"",
-        "AAuth-Capabilities": "interaction, clarification",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"",
-        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "Signature": "sig=:BAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUGBAUG:"
+        "Host": "api.example",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
+        "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "Signature": "sig=:U2lnbmF0dXJlQnl0ZXNFeGFtcGxlVmFsdWVGb3JEZW1vbnN0cmF0aW9uUHVycG9zZXNPbmx5:",
+        "AAuth-Capabilities": "interaction, clarification"
       },
       "request_body": null,
       "response_status": 200,
@@ -582,17 +661,15 @@
       },
       "response_body": {
         "message": "Access granted!",
-        "agent": "aauth:local@agent.example",
-        "mission_s256_in_auth_token": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-        "mission_s256_in_header": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0",
-        "s256_match": true,
+        "person": "8f14e45fceea167a5a36dedd4bea2543",
+        "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
         "scope": "read"
       },
       "tokens": [
         {
           "name": "Auth Token",
           "typ": "aa-auth+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ.eyJpc3MiOiJodHRwczovL2FzLmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hY2Nlc3MuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUiLCJqdGkiOiJmNTFjZjlkNy02YmRmLTQ5OTctODhiZS0xZjJjMjc3MTRjYTUiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6IjhmMTRlNDVmY2VlYTE2N2E1YTM2ZGVkZDRiZWEyNTQzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6IlRfMS1EWE5JeEl2MHRGRXFyRDlxNExIdTRWY0hKZ3NpRFBOX19SMV9ZMlUiLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwic2NvcGUiOiJyZWFkIiwibWlzc2lvbl9zMjU2IjoiN1NHVEZzdUtDY3BZSndHUmtWQmk4dk9jMVNzbTdOZGduVmFBcnVLODdSZyIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw",
           "header": {
             "alg": "EdDSA",
             "kid": "as-key-1",
@@ -600,9 +677,11 @@
           },
           "payload": {
             "iss": "https://as.example",
-            "aud": "https://api.example",
             "dwk": "aauth-access.json",
+            "aud": "https://api.example",
             "jti": "f51cf9d7-6bdf-4997-88be-1f2c27714ca5",
+            "ps": "https://ps.example",
+            "sub": "8f14e45fceea167a5a36dedd4bea2543",
             "cnf": {
               "jwk": {
                 "kty": "OKP",
@@ -611,39 +690,30 @@
                 "kid": "agent-key-1"
               }
             },
-            "iat": 1776222894,
-            "exp": 1776226494,
-            "agent": "aauth:local@agent.example",
-            "act": {
-              "sub": "aauth:local@agent.example"
-            },
             "scope": "read",
-            "mission": {
-              "approver": "https://ps.example",
-              "s256": "R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0"
-            }
+            "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
+            "iat": 1776222894,
+            "exp": 1776226494
           },
           "signature_b64": "AQ4PrIqINAsoFJLtN7D27685PzlCKlw7NRDS5gZEvj_p6LrteTwqbGPGH-UkiT1r-vMyG1dkyS6zbbAGnST2Dw"
         }
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"\n\"aauth-mission\": approver=\"https://ps.example\"; s256=\"R9kNpXeErMQ1Jvk_vxYUp3YEdggmvUhksWtjXtcmnh0\"\n\"@signature-params\": sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\" \"aauth-mission\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ\u2026\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000180;alg=\"ed25519\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFzLWtleS0xIiwidHlwIjoiYWEtYXV0aCtqd3QifQ…\"",
         "covered_components": [
           "@method",
           "@authority",
           "@path",
-          "signature-key",
-          "aauth-mission"
+          "signature-key"
         ]
       },
       "annotations": [
-        "Agent presents the auth token via sig=jwt and includes AAuth-Mission header.",
-        "aauth-mission is in the covered signature components.",
-        "Resource verifies: auth token mission.s256 == AAuth-Mission s256 == R9kNpXeErMQ1Jvk_\u2026",
-        "Full audit trail confirmed: user approval \u2192 resource token \u2192 auth token \u2192 access \u2014 s256 unchanged throughout."
+        "The agent presents the auth token via sig=jwt.",
+        "The resource reads mission_s256 from the auth token and nowhere else. There is no header to cross-check and nothing for the agent to assert.",
+        "Full trail: person approval → mission blob digest → person token → resource token → auth token → access, with the digest unchanged throughout."
       ],
       "is_response": false
     }

@@ -32,7 +32,7 @@ export function MissionBlobViewer({ mission }: MissionBlobViewerProps) {
 
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Structured Fields
+              Blob Members
             </p>
             <div className="mt-2 grid grid-cols-1 gap-1 text-[10px] font-mono text-muted-foreground">
               <div className="flex items-baseline gap-2 rounded bg-muted/30 px-2 py-1">
@@ -47,11 +47,48 @@ export function MissionBlobViewer({ mission }: MissionBlobViewerProps) {
                 <span className="shrink-0 text-muted-foreground/70">approved_at</span>
                 <span className="break-all">{mission.approved_at}</span>
               </div>
-              <div className="flex items-baseline gap-2 rounded bg-muted/30 px-2 py-1">
-                <span className="shrink-0 text-muted-foreground/70">s256</span>
-                <span className="break-all">{mission.s256}</span>
+              {mission.expires_at && (
+                <div className="flex items-baseline gap-2 rounded bg-muted/30 px-2 py-1">
+                  <span className="shrink-0 text-muted-foreground/70">expires_at</span>
+                  <span className="break-all">{mission.expires_at}</span>
+                </div>
+              )}
+              {mission.approved_resources && mission.approved_resources.length > 0 && (
+                <div className="flex items-baseline gap-2 rounded bg-muted/30 px-2 py-1">
+                  <span className="shrink-0 text-muted-foreground/70">approved_resources</span>
+                  <span className="break-all">{mission.approved_resources.join(", ")}</span>
+                </div>
+              )}
+            </div>
+            <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground/70">
+              The blob is what the digest covers. <span className="font-mono">approver</span> lives
+              here and nowhere else — no token carries it.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Mission Identifier
+            </p>
+            <div className="mt-2 space-y-1 text-[10px] font-mono text-muted-foreground">
+              {mission.encoded && (
+                <div className="rounded bg-muted/30 px-2 py-1">
+                  <span className="text-muted-foreground/70">mission (base64url)</span>
+                  <p className="mt-0.5 break-all">{mission.encoded}</p>
+                </div>
+              )}
+              <div className="rounded bg-muted/30 px-2 py-1">
+                <span className="text-muted-foreground/70">s256</span>
+                <p className="mt-0.5 break-all text-foreground/80">{mission.s256}</p>
               </div>
             </div>
+            <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground/70">
+              s256 is not a blob member. It is BASE64URL(SHA-256()) of the bytes{" "}
+              <span className="font-mono">mission</span> decodes to, returned alongside it so the
+              agent can verify the digest covers an unambiguous byte sequence. It travels as the{" "}
+              <span className="font-mono">mission_s256</span> claim of person, resource and auth
+              tokens.
+            </p>
           </div>
         </div>
 

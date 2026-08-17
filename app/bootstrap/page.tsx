@@ -208,7 +208,7 @@ export default function BootstrapPage() {
           href="/access/ps-asserted"
           className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
         >
-          PS-Asserted flow
+          PS authorization flow
           <ArrowRight className="h-3 w-3 opacity-70" />
         </Link>
       </section>

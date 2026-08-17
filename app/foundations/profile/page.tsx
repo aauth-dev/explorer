@@ -25,7 +25,7 @@ const COVERED_COMPONENTS = [
 const DWK_VALUES = [
   { value: "aauth-agent.json", owner: "Agent provider", contains: "agent token issuer keys" },
   { value: "aauth-resource.json", owner: "Resource", contains: "resource token issuer keys" },
-  { value: "aauth-person.json", owner: "Person server", contains: "auth-token & permission keys" },
+  { value: "aauth-person.json", owner: "Person server", contains: "person-token, auth-token & permission keys" },
   { value: "aauth-access.json", owner: "Access server", contains: "auth-token issuer keys" },
 ];
 

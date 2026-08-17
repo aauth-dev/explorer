@@ -10,9 +10,9 @@ const R3_SCENARIOS = [
     badgeColor: "text-teal-400 bg-teal-500/10",
   },
   {
-    title: "Conditional Operations",
-    desc: "Some operations require per-call approval. When the agent calls a conditional tool with actual parameters, the resource challenges. The AS evaluates the concrete call before issuing a narrow, short-lived auth token.",
-    href: "/r3/conditional-ops",
+    title: "Per-Call Operations",
+    desc: "Some operations are authorized in principle but not for any specific call. When the agent invokes an r3_per_call tool, the resource builds a per-call proposal — a full R3 document carrying that call's concrete parameters — and challenges. The AS evaluates the parameters before issuing a narrow, short-lived auth token.",
+    href: "/r3/per-call-ops",
     badge: "Challenge flow",
     badgeColor: "text-amber-400 bg-amber-500/10",
   },
@@ -47,8 +47,8 @@ const KEY_CONCEPTS = [
   {
     icon: Clock,
     color: "text-orange-400",
-    label: "Conditional grants",
-    desc: "r3_conditional operations require per-call AS approval with actual parameters. The AS evaluates who is being called, what data is involved — not just what the agent intends.",
+    label: "Per-call grants",
+    desc: "r3_per_call operations require per-call approval against actual parameters. The resource builds a proposal — a full R3 document with a parameters object — and the AS evaluates who is being emailed, how large the payment is, which record is deleted. Named r3_conditional before R3 -02.",
   },
 ];
 
@@ -67,7 +67,7 @@ export default function R3OverviewPage() {
           MCP tools, OpenAPI operationIds, gRPC methods. Auth tokens carry{" "}
           <code className="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">r3_granted</code>{" "}
           and{" "}
-          <code className="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">r3_conditional</code>
+          <code className="text-sm font-mono bg-muted px-1.5 py-0.5 rounded">r3_per_call</code>
           {" "}claims the resource enforces directly.
         </p>
       </div>
@@ -120,15 +120,15 @@ export default function R3OverviewPage() {
         <div className="space-y-0.5">
           <p className="text-sm font-medium">R3 extends the AAuth Protocol</p>
           <p className="text-xs text-muted-foreground">
-            R3 builds on top of the standard resource access flows. See how PS-asserted access works
-            before diving into R3.
+            R3 builds on the standard resource access flows: the same person token, the same
+            resource token, the same auth token. See PS authorization access before diving in.
           </p>
         </div>
         <Link
           href="/access/ps-asserted"
           className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
         >
-          PS-Asserted flow
+          PS authorization flow
           <ArrowRight className="h-3 w-3 opacity-70" />
         </Link>
       </section>

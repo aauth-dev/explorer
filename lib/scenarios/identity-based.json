@@ -1,8 +1,8 @@
 {
   "id": "identity-based",
-  "title": "Identity-Based Access",
-  "description": "The simplest resource access mode. The agent signs the request with its agent token (sig=jwt), the resource verifies the signature by resolving the agent provider's JWKS via the token's iss and dwk claims, and makes an access decision based on agent identity alone \u2014 no token exchange, no PS, no AS.",
-  "spec_section": "\u00a7 Identity-Based Access",
+  "title": "Agent Identity Access",
+  "description": "The agent signs requests with its agent token. The resource verifies the HTTP signature and the token, and applies its own access control policy on who the agent is. This replaces API keys with cryptographic identity: no authorization flow, no PS, no AS, and no token beyond the agent token. A resource that wants an AAuth agent token in particular says so with requirement=agent-token.",
+  "spec_section": "§ Agent Identity Access",
   "category": "access",
   "demo_phase": null,
   "participants": [
@@ -22,12 +22,12 @@
       "step": 1,
       "from": "agent",
       "to": "resource",
-      "label": "Signed GET /data (sig=jwt) \u2192 resource verifies agent token \u2192 200",
+      "label": "Signed GET /data (sig=jwt) → resource verifies agent token → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
         "Host": "api.example",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQ:"
       },
@@ -46,7 +46,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6ImE2YWUzMDFkLTFkYzctNGI3NS04ZjhiLTU2MTIxOTc2NjRhNyIsImNuZiI6eyJqd2siOnsia3R5IjoiT0tQIiwiY3J2IjoiRWQyNTUxOSIsIngiOiJUXzEtRFhOSXhJdjB0RkVxckQ5cTRMSHU0VmNISmdzaURQTl9fUjFfWTJVIiwia2lkIjoiYWdlbnQta2V5LTEifX0sImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjI2NDk0fQ.8byvGd-PR3uOLeS_HYOpbW7OD_8whUuDRnadQOL83-3jp5V_zwPUkKvBZ-WmB26EaWGey4bVktpWtpykEOy_Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-key-1",
@@ -54,8 +54,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:local@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:local@agent.example",
             "jti": "a6ae301d-1dc7-4b75-8f8b-5612197664a7",
             "cnf": {
               "jwk": {
@@ -73,9 +73,9 @@
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0\u2026\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0…\"",
         "covered_components": [
           "@method",
           "@authority",
@@ -87,8 +87,8 @@
         "Agent presents its agent token in the Signature-Key header using sig=jwt.",
         "Resource resolves the token: fetches agent.example/.well-known/aauth-agent.json, verifies JWT signature, extracts cnf.jwk.",
         "Resource confirms the HTTP signature was made with the key in cnf.jwk.",
-        "Resource checks its internal policy \u2014 this agent identifier is in the allowed list.",
-        "Access granted. No PS, no AS, no token exchange \u2014 pure cryptographic identity."
+        "Resource checks its internal policy — this agent identifier is in the allowed list.",
+        "Access granted. No PS, no AS, no token exchange — pure cryptographic identity."
       ],
       "is_response": false
     }

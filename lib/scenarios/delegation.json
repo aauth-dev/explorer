@@ -1,8 +1,8 @@
 {
   "id": "delegation",
   "title": "Agent Tokens (sig=jwt)",
-  "description": "An agent provider issues an aa-agent+jwt whose cnf.jwk is the agent's own public key \u2014 binding the token to the agent's signing key. The agent then signs requests using sig=jwt, embedding the agent token in Signature-Key. The resource verifies that the key used to sign matches cnf.jwk in the token, establishing the agent's identity.",
-  "spec_section": "\u00a7 Agent Tokens / sig=jwt",
+  "description": "An agent provider issues an aa-agent+jwt whose cnf.jwk is the agent's own public key — binding the token to the agent's signing key. The agent then signs requests using sig=jwt, embedding the agent token in Signature-Key. The resource verifies that the key used to sign matches cnf.jwk in the token, establishing the agent's identity.",
+  "spec_section": "§ Agent Tokens / sig=jwt",
   "category": "signing",
   "demo_phase": 6,
   "participants": [
@@ -52,7 +52,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJzdWIiOiJhYXV0aDpkZWxlZ2F0ZS0xQDEyNy4wLjAuMSIsImR3ayI6ImFhdXRoLWFnZW50Lmpzb24iLCJqdGkiOiI3YWZlZmRlZC1jYWM2LTRjYTEtOTg1Ni1kNjY1YTE5MDMzMzMiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiT0s0MWJYSTJJZlNXY19zZnBVQTFGcklCYlpMdGJfR09qMVMzaW5TMUZjZyIsImtpZCI6ImRlbGVnYXRlLWtleS0xIn19LCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.D8vHslQBE8Aj67fay9Hrad3zKCInlg4k7w5GOOjGhZR4wUxm-Mr9_XzXRUiKwpu2L153ABD-nkvhd1XuLmPiAw",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXByb3ZpZGVyLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6YWdlbnQtMUBhZ2VudC5leGFtcGxlIiwianRpIjoiN2FmZWZkZWQtY2FjNi00Y2ExLTk4NTYtZDY2NWExOTAzMzMzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ik9LNDFiWEkySWZTV2Nfc2ZwVUExRnJJQmJaTHRiX0dPajFTM2luUzFGY2ciLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.D8vHslQBE8Aj67fay9Hrad3zKCInlg4k7w5GOOjGhZR4wUxm-Mr9_XzXRUiKwpu2L153ABD-nkvhd1XuLmPiAw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-provider-key-1",
@@ -60,8 +60,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:agent-1@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:agent-1@agent.example",
             "jti": "7afefded-cac6-4ca1-9856-d665a1903333",
             "cnf": {
               "jwk": {
@@ -90,12 +90,12 @@
       "step": 2,
       "from": "agent",
       "to": "resource",
-      "label": "Sign request with sig=jwt (agent token in Signature-Key) \u2192 200",
+      "label": "Sign request with sig=jwt (agent token in Signature-Key) → 200",
       "method": "GET",
       "url": "https://api.example/data",
       "request_headers": {
         "Host": "api.example",
-        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r\u2026\"",
+        "Signature-Key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r…\"",
         "Signature-Input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "Signature": "sig=:D8vHslQBE8Aj67fay9Hrad3zKCInlg4k7w5GOOjGhZR4wUxm-Mr9_XzXRUiKwpu2L153ABD-nkvhd1XuLmPiAw:"
       },
@@ -112,7 +112,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDEiLCJzdWIiOiJhYXV0aDpkZWxlZ2F0ZS0xQDEyNy4wLjAuMSIsImR3ayI6ImFhdXRoLWFnZW50Lmpzb24iLCJqdGkiOiI3YWZlZmRlZC1jYWM2LTRjYTEtOTg1Ni1kNjY1YTE5MDMzMzMiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiT0s0MWJYSTJJZlNXY19zZnBVQTFGcklCYlpMdGJfR09qMVMzaW5TMUZjZyIsImtpZCI6ImRlbGVnYXRlLWtleS0xIn19LCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyNjQ5NH0.D8vHslQBE8Aj67fay9Hrad3zKCInlg4k7w5GOOjGhZR4wUxm-Mr9_XzXRUiKwpu2L153ABD-nkvhd1XuLmPiAw",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXByb3ZpZGVyLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6YWdlbnQtMUBhZ2VudC5leGFtcGxlIiwianRpIjoiN2FmZWZkZWQtY2FjNi00Y2ExLTk4NTYtZDY2NWExOTAzMzMzIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6Ik9LNDFiWEkySWZTV2Nfc2ZwVUExRnJJQmJaTHRiX0dPajFTM2luUzFGY2ciLCJraWQiOiJhZ2VudC1rZXktMSJ9fSwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjY0OTR9.D8vHslQBE8Aj67fay9Hrad3zKCInlg4k7w5GOOjGhZR4wUxm-Mr9_XzXRUiKwpu2L153ABD-nkvhd1XuLmPiAw",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-provider-key-1",
@@ -120,8 +120,8 @@
           },
           "payload": {
             "iss": "https://agent.example",
-            "sub": "aauth:agent-1@agent.example",
             "dwk": "aauth-agent.json",
+            "sub": "aauth:agent-1@agent.example",
             "jti": "7afefded-cac6-4ca1-9856-d665a1903333",
             "cnf": {
               "jwk": {
@@ -139,9 +139,9 @@
       ],
       "signature": {
         "scheme": "jwt",
-        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r\u2026\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
+        "signature_base": "\"@method\": GET\n\"@authority\": api.example\n\"@path\": /data\n\"signature-key\": sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r…\"\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"signature-key\");created=1700000000;alg=\"ed25519\"",
-        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r\u2026\"",
+        "signature_key": "sig=jwt;jwt=\"eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1r…\"",
         "covered_components": [
           "@method",
           "@authority",
@@ -150,7 +150,7 @@
         ]
       },
       "annotations": [
-        "Agent signs with sig=jwt \u2014 the agent token is embedded in Signature-Key.",
+        "Agent signs with sig=jwt — the agent token is embedded in Signature-Key.",
         "Agent signs with its own private key (matching cnf.jwk inside the agent token).",
         "Resource extracts the agent token from Signature-Key, fetches the agent provider's JWKS to verify the token, then checks that cnf.jwk matches the key that produced the HTTP signature.",
         "On success the resource knows the agent's identity: aauth:agent-1@agent.example."

@@ -222,7 +222,7 @@
         {
           "name": "jkt-jwt",
           "typ": "jkt+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjpOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreHpzUkdDOVhzIiwidHlwIjoiamt0K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAxMDAsImV4cCI6MTcwMDAwMDQwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImFXOXpYMlZ3YUdWdFpYSmhiRjl6YVdkdWFXNW5YMnRsZVY5d2RXSnNhV00iLCJraWQiOiJpb3Mtc2lnbmluZy1rZXktMSJ9fX0.ZW5jbGF2ZV9zaWduYXR1cmVfYXBwX2F0dGVzdA",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InVybjpqa3Q6c2hhLTI1NjpOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwidHlwIjoiamt0K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAxMDAsImV4cCI6MTcwMDAwMDQwMCwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImFXOXpYMlZ3YUdWdFpYSmhiRjl6YVdkdWFXNW5YMnRsZVY5d2RXSnNhV00iLCJraWQiOiJpb3Mtc2lnbmluZy1rZXktMSJ9fX0.ZW5jbGF2ZV9zaWduYXR1cmVfYXBwX2F0dGVzdA",
           "header": {
             "alg": "ES256",
             "kid": "urn:jkt:sha-256:NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
@@ -286,7 +286,7 @@
         {
           "name": "Agent Token",
           "typ": "aa-agent+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXNlcnZlci1rZXktMSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwianRpIjoiaW9zLWFnZW50LXRva2VuLTEiLCJjbmYiOnsiandrIjp7Imt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiYVc5elgyVndhR1Z0WlhKaGJGOXphV2R1YVc1blgydGxlVjl3ZFdKc2FXTSIsImtpZCI6Imlvcy1zaWduaW5nLWtleS0xIn19LCJpYXQiOjE3MDAwMDAxMDAsImV4cCI6MTcwMDA4NjUwMH0.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9pb3M",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6ImFnZW50LXByb3ZpZGVyLWtleS0xIiwidHlwIjoiYWEtYWdlbnQrand0In0.eyJpc3MiOiJodHRwczovL2FnZW50LmV4YW1wbGUiLCJkd2siOiJhYXV0aC1hZ2VudC5qc29uIiwic3ViIjoiYWF1dGg6bG9jYWxAYWdlbnQuZXhhbXBsZSIsImp0aSI6Imlvcy1hZ2VudC10b2tlbi0xIiwiY25mIjp7Imp3ayI6eyJrdHkiOiJPS1AiLCJjcnYiOiJFZDI1NTE5IiwieCI6ImFXOXpYMlZ3YUdWdFpYSmhiRjl6YVdkdWFXNW5YMnRsZVY5d2RXSnNhV00iLCJraWQiOiJpb3Mtc2lnbmluZy1rZXktMSJ9fSwicHMiOiJodHRwczovL3BzLmV4YW1wbGUiLCJpYXQiOjE3MDAwMDAxMDAsImV4cCI6MTcwMDA4NjUwMH0.YWdlbnRfc2VydmVyX3NpZ25hdHVyZV9pb3M",
           "header": {
             "alg": "EdDSA",
             "kid": "agent-provider-key-1",
@@ -296,7 +296,6 @@
             "iss": "https://agent.example",
             "dwk": "aauth-agent.json",
             "sub": "aauth:local@agent.example",
-            "ps": "https://ps.example",
             "jti": "ios-agent-token-1",
             "cnf": {
               "jwk": {
@@ -306,6 +305,7 @@
                 "kid": "ios-signing-key-1"
               }
             },
+            "ps": "https://ps.example",
             "iat": 1700000100,
             "exp": 1700086500
           },
@@ -317,7 +317,12 @@
         "signature_base": "\"@method\": POST\n\"@authority\": agent.example\n\"@path\": /bootstrap\n\"content-digest\": sha-256=:YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=\n\"@signature-params\": (\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000100;alg=\"ed25519\";keyid=\"ios-signing-key-1\"",
         "signature_input": "sig=(\"@method\" \"@authority\" \"@path\" \"content-digest\");created=1700000100;alg=\"ed25519\";keyid=\"ios-signing-key-1\"",
         "signature_key": "sig=jkt-jwt;jwt=\"<jkt-jwt-token>\"",
-        "covered_components": ["@method", "@authority", "@path", "content-digest"]
+        "covered_components": [
+          "@method",
+          "@authority",
+          "@path",
+          "content-digest"
+        ]
       },
       "annotations": [
         "Mobile clients use jkt-jwt scheme — the jkt-jwt header references the enclave key, cnf.jwk is the ephemeral key.",

@@ -37,15 +37,18 @@ const LAYERS = [
     Icon: Lock,
     accent: "border-green-500/35 hover:border-green-500/55",
     iconWrap: "bg-green-500/15 text-green-400",
-    body: "How a protected API decides what the agent may do — from identity-only access through two-party flows, three-party flows with a Person Server, and four-party federation with an Access Server.",
-    links: [{ href: "/access/compare", label: "Compare access modes" }],
+    body: "How a protected API decides what the agent may do. Five modes, sorted by what the resource ends up knowing: which agent, which person (its own flow, or a login the Person Server ran), person plus consented scope, or person plus an Access Server's policy verdict.",
+    links: [
+      { href: "/access/compare", label: "Compare access modes" },
+      { href: "/access/person-identity", label: "Person tokens" },
+    ],
   },
   {
     title: "Mission",
     Icon: FileText,
     accent: "border-purple-500/35 hover:border-purple-500/55",
     iconWrap: "bg-purple-500/15 text-purple-400",
-    body: "Optional governance: the agent proposes a mission; the Person Server approves, scopes permissions, and threads mission context through tokens. Also covers delegation across resources and advanced interaction patterns.",
+    body: "Optional governance: the agent proposes a mission; the Person Server approves it, returns the blob and its digest, and threads that digest through every token it later issues. Also covers delegation across resources and advanced interaction patterns.",
     links: [
       { href: "/missions/compare", label: "Missions vs no mission" },
       { href: "/missions/lifecycle", label: "Proposal & approval" },
@@ -118,7 +121,7 @@ export default function HomePage() {
       {/* Participants */}
       <section className="rounded-xl border border-border bg-card p-6 space-y-4">
         <div className="space-y-1">
-          <h2 className="font-semibold">The four participants</h2>
+          <h2 className="font-semibold">The four server roles</h2>
           <p className="text-xs text-muted-foreground">
             Every scenario involves some subset of these roles. Use the sidebar to drill into each
             area.
@@ -134,12 +137,12 @@ export default function HomePage() {
             {
               label: "Resource",
               color: "bg-participant-resource",
-              desc: "Protected API; issues resource tokens, verifies auth",
+              desc: "Protected API; verifies person tokens, issues resource tokens, enforces auth tokens",
             },
             {
               label: "Person Server",
               color: "bg-participant-ps",
-              desc: "Represents the user; manages missions, federates to AS",
+              desc: "Represents the person; issues person tokens, manages missions, federates to AS",
             },
             {
               label: "Access Server",
