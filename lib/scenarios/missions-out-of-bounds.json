@@ -194,7 +194,7 @@
         {
           "name": "Resource Token (carries M1 mission + broader scope)",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjZjZjEyZWEyLTRhMTktNGIwZC05ZDkxLTFlN2Q0ZTBiM2MxNSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoiYW5hbHl0aWNzOnJlYWQiLCJtaXNzaW9uX3MyNTYiOiI3U0dURnN1S0NjcFlKd0dSa1ZCaTh2T2MxU3NtN05kZ25WYUFydUs4N1JnIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjM0OTR9.fN4sPcP23KTjyHuvJ9S2_vR3V_ucaaxmkkn-GF74xJOLWlPdXoUVS_0gVD1Ju30MlJVd4-xWU0P_ZaxsUjeVBg",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjZjZjEyZWEyLTRhMTktNGIwZC05ZDkxLTFlN2Q0ZTBiM2MxNSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoiYW5hbHl0aWNzOnJlYWQiLCJtaXNzaW9uX3MyNTYiOiI3U0dURnN1S0NjcFlKd0dSa1ZCaTh2T2MxU3NtN05kZ25WYUFydUs4N1JnIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjM0OTR9.fN4sPcP23KTjyHuvJ9S2_vR3V_ucaaxmkkn-GF74xJOLWlPdXoUVS_0gVD1Ju30MlJVd4-xWU0P_ZaxsUjeVBg",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -207,7 +207,7 @@
             "jti": "6cf12ea2-4a19-4b0d-9d91-1e7d4e0b3c15",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "analytics:read",
             "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
@@ -272,7 +272,7 @@
         {
           "name": "Resource Token (submitted to PS)",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjZjZjEyZWEyLTRhMTktNGIwZC05ZDkxLTFlN2Q0ZTBiM2MxNSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoiYW5hbHl0aWNzOnJlYWQiLCJtaXNzaW9uX3MyNTYiOiI3U0dURnN1S0NjcFlKd0dSa1ZCaTh2T2MxU3NtN05kZ25WYUFydUs4N1JnIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjM0OTR9.fN4sPcP23KTjyHuvJ9S2_vR3V_ucaaxmkkn-GF74xJOLWlPdXoUVS_0gVD1Ju30MlJVd4-xWU0P_ZaxsUjeVBg",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjZjZjEyZWEyLTRhMTktNGIwZC05ZDkxLTFlN2Q0ZTBiM2MxNSIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoiYW5hbHl0aWNzOnJlYWQiLCJtaXNzaW9uX3MyNTYiOiI3U0dURnN1S0NjcFlKd0dSa1ZCaTh2T2MxU3NtN05kZ25WYUFydUs4N1JnIiwiaWF0IjoxNzc2MjIyODk0LCJleHAiOjE3NzYyMjM0OTR9.fN4sPcP23KTjyHuvJ9S2_vR3V_ucaaxmkkn-GF74xJOLWlPdXoUVS_0gVD1Ju30MlJVd4-xWU0P_ZaxsUjeVBg",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -285,7 +285,7 @@
             "jti": "6cf12ea2-4a19-4b0d-9d91-1e7d4e0b3c15",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "analytics:read",
             "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
@@ -311,7 +311,7 @@
       },
       "annotations": [
         "This is where mission governance actually happens.",
-        "The PS resolves the person token named by person_token_jti, confirms mission_s256 matches it, and confirms M1 is still active.",
+        "The PS resolves the person token named by presented_jti, confirms mission_s256 matches it, and confirms M1 is still active.",
         "It then has the full mission blob and the mission log, and compares the request against what the person approved.",
         "scope=analytics:read is not covered by M1's approved tools (FeedbackReader, ReportWriter), so the PS asks the person: 202 with requirement=interaction.",
         "The PS has not federated to the AS. No auth token is issued while the consent is pending."

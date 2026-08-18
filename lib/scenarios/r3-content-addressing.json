@@ -94,7 +94,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6InJ0LWNhLTg5MGEiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzLzdjOHlfYmQ1OXE5ZmM5cm0iLCJyM19zMjU2IjoiN2M4WV9CRDU5UTlGQzlybWw5QlVSdWlCUEdhb2xaMU9IVUIxTi1LWlpOOCIsImlhdCI6MTc0MTgyNTAwMCwiZXhwIjoxNzQxODI1MzAwfQ.MEYCIQDcontent_addressing_resource_token_display_only",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6InJ0LWNhLTg5MGEiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicHJlc2VudGVkX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzLzdjOHlfYmQ1OXE5ZmM5cm0iLCJyM19zMjU2IjoiN2M4WV9CRDU5UTlGQzlybWw5QlVSdWlCUEdhb2xaMU9IVUIxTi1LWlpOOCIsImlhdCI6MTc0MTgyNTAwMCwiZXhwIjoxNzQxODI1MzAwfQ.MEYCIQDcontent_addressing_resource_token_display_only",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
@@ -107,7 +107,7 @@
             "jti": "rt-ca-890a",
             "ps": "https://ps.example",
             "sub": "e4da3b7fbbce2345d7772b0674a318d5",
-            "person_token_jti": "pt-8b41fd",
+            "presented_jti": "pt-8b41fd",
             "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
             "r3_uri": "https://calendar.example.com/r3/7c8y_bd59q9fc9rm",
             "r3_s256": "7c8Y_BD59Q9FC9rml9BURuiBPGaolZ1OHUB1N-KZZN8",
@@ -120,7 +120,7 @@
       "annotations": [
         "The agent presents a person token for this resource and requests two MCP tools.",
         "The resource maps them to an R3 document whose display carries an irreversible warning — sent invitations cannot be recalled.",
-        "The resource token carries r3_uri and r3_s256, plus ps, sub and person_token_jti from the person token.",
+        "The resource token carries r3_uri and r3_s256, plus ps, sub and presented_jti from the person token.",
         "aud=PS URL: a three-party flow. The PS is the token authority and handles consent.",
         "The agent cannot read the R3 document. It only carries the hash."
       ],

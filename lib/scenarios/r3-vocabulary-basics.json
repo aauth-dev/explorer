@@ -127,7 +127,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicHJlc2VudGVkX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
@@ -140,7 +140,7 @@
             "jti": "rt-7f2a1c",
             "ps": "https://ps.example",
             "sub": "e4da3b7fbbce2345d7772b0674a318d5",
-            "person_token_jti": "pt-8b41fd",
+            "presented_jti": "pt-8b41fd",
             "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
             "r3_uri": "https://calendar.example.com/r3/btu9e1iriwe6n36b",
             "r3_s256": "bTu9E1IriWe6n36bEBT7UsOj6q26TdInNTmR2osjMno",
@@ -203,7 +203,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicHJlc2VudGVkX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
@@ -216,7 +216,7 @@
             "jti": "rt-7f2a1c",
             "ps": "https://ps.example",
             "sub": "e4da3b7fbbce2345d7772b0674a318d5",
-            "person_token_jti": "pt-8b41fd",
+            "presented_jti": "pt-8b41fd",
             "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
             "r3_uri": "https://calendar.example.com/r3/btu9e1iriwe6n36b",
             "r3_s256": "bTu9E1IriWe6n36bEBT7UsOj6q26TdInNTmR2osjMno",
@@ -228,7 +228,7 @@
       ],
       "annotations": [
         "The agent sends the resource token to its PS's auth_token_endpoint, signing with its own agent token.",
-        "The PS resolves the person token named by person_token_jti and checks ps and sub against it before doing anything else.",
+        "The PS resolves the person token named by presented_jti and checks ps and sub against it before doing anything else.",
         "aud is the AS, so the PS federates. The agent never contacts the AS directly."
       ],
       "signature": {
@@ -275,7 +275,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicGVyc29uX3Rva2VuX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
+          "raw": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZS5jb20iLCJqdGkiOiJydC03ZjJhMWMiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImU0ZGEzYjdmYmJjZTIzNDVkNzc3MmIwNjc0YTMxOGQ1IiwicHJlc2VudGVkX2p0aSI6InB0LThiNDFmZCIsImFnZW50X2prdCI6Ik56YkxzWGg4dURDY2QtNk1Od1hGNFdfN25vV1hGWkFmSGt4WnNSR0M5WHMiLCJyM191cmkiOiJodHRwczovL2NhbGVuZGFyLmV4YW1wbGUuY29tL3IzL2J0dTllMWlyaXdlNm4zNmIiLCJyM19zMjU2IjoiYlR1OUUxSXJpV2U2bjM2YkVCVDdVc09qNnEyNlRkSW5OVG1SMm9zak1ubyIsImlhdCI6MTc0MTgyNDAwMCwiZXhwIjoxNzQxODI0MzAwfQ.MEYCIQDresource_token_signature_for_display_purposes_only_not_a_real_sig",
           "header": {
             "alg": "ES256",
             "kid": "resource-key-1",
@@ -288,7 +288,7 @@
             "jti": "rt-7f2a1c",
             "ps": "https://ps.example",
             "sub": "e4da3b7fbbce2345d7772b0674a318d5",
-            "person_token_jti": "pt-8b41fd",
+            "presented_jti": "pt-8b41fd",
             "agent_jkt": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
             "r3_uri": "https://calendar.example.com/r3/btu9e1iriwe6n36b",
             "r3_s256": "bTu9E1IriWe6n36bEBT7UsOj6q26TdInNTmR2osjMno",

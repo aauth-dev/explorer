@@ -314,7 +314,7 @@
         {
           "name": "R2 Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InIyLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL3Jlc291cmNlMi5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMyLmV4YW1wbGUiLCJqdGkiOiI1MjBjOWFkOS1iMmM0LTRlMGMtYjQ0Yy0wN2Y1NWEzMWRlZTAiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImM0Y2E0MjM4YTBiOTIzODIwZGNjNTA5YTZmNzU4NDliIiwicGVyc29uX3Rva2VuX2p0aSI6InB0LTRhOTI4NSIsImFnZW50X2prdCI6InRpSHNoNTZxZXFtV2EwbUpkRlVoUmotMm8tZ09tWmd2UzNBR2F1cVFlT0UiLCJzY29wZSI6InJlYWQiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.Xt0E-YRp9tvXXT9mi7dX4xTcMbn7F1HCKJOZjD-CiRI3AJGzrGpgk7s09Ohep9uq-gOajX_n_N0D-6gN3bcmDw",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InIyLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL3Jlc291cmNlMi5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMyLmV4YW1wbGUiLCJqdGkiOiI1MjBjOWFkOS1iMmM0LTRlMGMtYjQ0Yy0wN2Y1NWEzMWRlZTAiLCJwcyI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsInN1YiI6ImM0Y2E0MjM4YTBiOTIzODIwZGNjNTA5YTZmNzU4NDliIiwicHJlc2VudGVkX2p0aSI6InB0LTRhOTI4NSIsImFnZW50X2prdCI6InRpSHNoNTZxZXFtV2EwbUpkRlVoUmotMm8tZ09tWmd2UzNBR2F1cVFlT0UiLCJzY29wZSI6InJlYWQiLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.Xt0E-YRp9tvXXT9mi7dX4xTcMbn7F1HCKJOZjD-CiRI3AJGzrGpgk7s09Ohep9uq-gOajX_n_N0D-6gN3bcmDw",
           "header": {
             "alg": "EdDSA",
             "kid": "r2-key-1",
@@ -327,7 +327,7 @@
             "jti": "520c9ad9-b2c4-4e0c-b44c-07f55a31dee0",
             "ps": "https://ps.example",
             "sub": "c4ca4238a0b923820dcc509a6f75849b",
-            "person_token_jti": "pt-4a9285",
+            "presented_jti": "pt-4a9285",
             "agent_jkt": "tiHsh56qeqmWa0mJdFUhRj-2o-gOmZgvS3AGauqQeOE",
             "scope": "read",
             "iat": 1776222894,
@@ -351,7 +351,7 @@
       "annotations": [
         "R1 presents the person token for R2 and gets the 401 challenge with a resource token.",
         "R2 issues aud=AS2 — it has its own access server.",
-        "ps, sub and person_token_jti are copied from the person token; agent_jkt is R1's key."
+        "ps, sub and presented_jti are copied from the person token; agent_jkt is R1's key."
       ],
       "is_response": false
     },

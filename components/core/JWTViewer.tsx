@@ -17,7 +17,7 @@ const CLAIM_TOOLTIPS: Record<string, string> = {
   cnf: "Confirmation — proof-of-possession claim binding this token to a key",
   jwk: "JSON Web Key — the public key bound to this token",
   agent_jkt: "JWK Thumbprint of the agent's signing key. With cnf, this is the only binding to the agent — no token a resource reads carries an agent identifier.",
-  person_token_jti: "The jti of the person token this resource token was issued against. The PS resolves that exact token and rejects any mismatch, which is what makes mission stripping detectable.",
+  presented_jti: "The jti of the person token whose verification established ps and sub — presented with the request on a first challenge, or resolved from the resource's record on a step-up. The PS resolves that exact token and rejects any mismatch, which is what makes mission stripping detectable.",
   ps: "The person's Person Server. In a resource token, the iss of the person token the resource verified. In an auth token, the PS the person is represented by — and where an intermediary routes a downstream request.",
   scope: "Authorized scope/permissions granted by this token",
   mission_s256: "The mission this token was issued under: the unpadded base64url SHA-256 of the approved mission blob's bytes. It is the only way a mission reaches a resource — the AAuth-Mission header was removed in -11.",
