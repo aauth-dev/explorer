@@ -159,7 +159,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -172,7 +172,7 @@
             "jti": "ec12c052-ab17-49e1-88d3-5e2317ba82c4",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "tcP75aIbpvVmzZ0P-LIZeoLua8SuE8RGM4tO_2OkRpg",
             "scope": "read",
             "iat": 1776222894,
@@ -199,7 +199,7 @@
         "The agent presents the person token via Signature-Key — the authorization endpoint requires one. Without it the resource answers 401 with requirement=person-token.",
         "A resource MUST have verified a person token before it issues a resource token, so the identity in the resource token is PS-asserted, not agent-asserted.",
         "KEY DIFFERENCE from four-party: aud = the PS URL, taken from the ps claim of the person token. The resource has no AS of its own.",
-        "The resource token carries ps, sub and person_token_jti copied from the person token, plus agent_jkt binding it to the agent's key. It carries no agent identifier.",
+        "The resource token carries ps, sub and presented_jti copied from the person token, plus agent_jkt binding it to the agent's key. It carries no agent identifier.",
         "The same resource token can also arrive on a 401 with AAuth-Requirement: requirement=auth-token, when the agent calls an endpoint directly instead of the authorization endpoint."
       ],
       "is_response": false
@@ -233,7 +233,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -246,7 +246,7 @@
             "jti": "ec12c052-ab17-49e1-88d3-5e2317ba82c4",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "tcP75aIbpvVmzZ0P-LIZeoLua8SuE8RGM4tO_2OkRpg",
             "scope": "read",
             "iat": 1776222894,
@@ -302,7 +302,7 @@
       "annotations": [
         "The agent sends the resource token to its PS's auth_token_endpoint (renamed from token_endpoint in -11). It signs with its own agent token, not the person token.",
         "The PS sees aud = its own URL — no federation needed. It is the authority.",
-        "The PS looks up the person token named by person_token_jti among those it issued and verifies ps, sub, mission_s256 and tenant match it exactly. Any mismatch is rejected.",
+        "The PS looks up the person token named by presented_jti among those it issued and verifies ps, sub, mission_s256 and tenant match it exactly. Any mismatch is rejected.",
         "The PS verifies agent_jkt in the resource token is the JWK thumbprint of the key that signed this request.",
         "The PS issues the auth token: iss=PS, dwk=aauth-person.json, aud=resource, ps=PS, sub=the same directed identifier, cnf.jwk=the agent's public key.",
         "No AS is contacted. The PS is the sole token issuer in this mode."
@@ -574,7 +574,7 @@
           {
             "name": "Resource Token",
             "typ": "aa-resource+jwt",
-            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
+            "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoicmVhZCIsImlhdCI6MTc3NjIyMjg5NCwiZXhwIjoxNzc2MjIzNDk0fQ.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
             "header": {
               "alg": "EdDSA",
               "kid": "resource-key-1",
@@ -587,7 +587,7 @@
               "jti": "ec12c052-ab17-49e1-88d3-5e2317ba82c4",
               "ps": "https://ps.example",
               "sub": "8f14e45fceea167a5a36dedd4bea2543",
-              "person_token_jti": "pt-32d653",
+              "presented_jti": "pt-32d653",
               "agent_jkt": "tcP75aIbpvVmzZ0P-LIZeoLua8SuE8RGM4tO_2OkRpg",
               "scope": "read",
               "iat": 1776222894,
@@ -614,7 +614,7 @@
           "The agent presents the person token via Signature-Key — the authorization endpoint requires one. Without it the resource answers 401 with requirement=person-token.",
           "A resource MUST have verified a person token before it issues a resource token, so the identity in the resource token is PS-asserted, not agent-asserted.",
           "KEY DIFFERENCE from four-party: aud = the PS URL, taken from the ps claim of the person token. The resource has no AS of its own.",
-          "The resource token carries ps, sub and person_token_jti copied from the person token, plus agent_jkt binding it to the agent's key. It carries no agent identifier.",
+          "The resource token carries ps, sub and presented_jti copied from the person token, plus agent_jkt binding it to the agent's key. It carries no agent identifier.",
           "The same resource token can also arrive on a 401 with AAuth-Requirement: requirement=auth-token, when the agent calls an endpoint directly instead of the authorization endpoint."
         ],
         "is_response": false
@@ -666,7 +666,7 @@
         },
         "annotations": [
           "The PS sees aud = its own URL — it will issue directly, but it wants the person's consent for this scope first.",
-          "It resolves the person token named by person_token_jti before anything else; a resource token whose claims do not match the token the PS issued is rejected outright.",
+          "It resolves the person token named by presented_jti before anything else; a resource token whose claims do not match the token the PS issued is rejected outright.",
           "202 + a pending URL to poll and an interaction URL for the person to open.",
           "No AS is involved — the deferral is entirely within the PS."
         ],

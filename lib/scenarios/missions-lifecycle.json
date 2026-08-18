@@ -356,7 +356,7 @@
       "label": "mission_s256 in the resource token",
       "source": "Resource copies it out of the person token it verified",
       "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
-      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. person_token_jti names the exact token it was copied from."
+      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. presented_jti names the exact token it was copied from."
     },
     {
       "label": "mission_s256 in the auth token",

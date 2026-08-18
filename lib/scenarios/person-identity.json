@@ -308,7 +308,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoiZG9jdW1lbnRzLndyaXRlIiwiaWF0IjoxNzc2MjIyOTU0LCJleHAiOjE3NzYyMjMyNTR9.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vcHMuZXhhbXBsZSIsImp0aSI6ImVjMTJjMDUyLWFiMTctNDllMS04OGQzLTVlMjMxN2JhODJjNCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoidGNQNzVhSWJwdlZtelowUC1MSVplb0x1YThTdUU4UkdNNHRPXzJPa1JwZyIsInNjb3BlIjoiZG9jdW1lbnRzLndyaXRlIiwiaWF0IjoxNzc2MjIyOTU0LCJleHAiOjE3NzYyMjMyNTR9.6QznE3sOp9JX6RY4a0olsuHZSIKAn5t4HwyxK9M8fOOIW9D2nQGR18uObb97Ui6BZdb0F8gTP7BqI5BO0WRsDA",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -321,7 +321,7 @@
             "jti": "ec12c052-ab17-49e1-88d3-5e2317ba82c4",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "tcP75aIbpvVmzZ0P-LIZeoLua8SuE8RGM4tO_2OkRpg",
             "scope": "documents.write",
             "iat": 1776222954,
@@ -345,9 +345,9 @@
       "annotations": [
         "Identity was enough for GET /me. Writing a document is not, so the resource challenges here with requirement=auth-token while continuing to serve the rest on the person token.",
         "The resource MUST have verified a person token before it issues a resource token. That is what makes the identity in the resource token PS-asserted rather than agent-asserted.",
-        "ps, sub and person_token_jti are copied out of the person token it just verified. agent_jkt binds the resource token to the agent's key.",
+        "ps, sub and presented_jti are copied out of the person token it just verified. agent_jkt binds the resource token to the agent's key.",
         "No agent identifier appears in the resource token. agent_jkt and cnf are the binding; the PS learns the agent's identity from the agent token that signs the request to it.",
-        "person_token_jti is what makes mission stripping detectable: the PS resolves the exact person token it issued and rejects any mismatch in ps, sub, mission_s256 or tenant.",
+        "presented_jti is what makes mission stripping detectable: the PS resolves the exact person token it issued and rejects any mismatch in ps, sub, mission_s256 or tenant.",
         "From here the flow continues as PS authorization access — the agent sends the resource token to its PS's auth_token_endpoint."
       ],
       "is_response": false

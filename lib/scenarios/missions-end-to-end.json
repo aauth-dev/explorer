@@ -77,7 +77,7 @@
       "label": "mission_s256 in the resource token",
       "source": "Resource copies it out of the person token it verified",
       "s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
-      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. person_token_jti names the exact token it was copied from."
+      "detail": "REQUIRED when the person token carried one — a resource MUST NOT omit it. presented_jti names the exact token it was copied from."
     },
     {
       "label": "mission_s256 in the auth token",
@@ -461,7 +461,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -474,7 +474,7 @@
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
             "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
@@ -529,7 +529,7 @@
       "annotations": [
         "The agent presents the person token that came back with the approval — no separate request needed.",
         "The resource MUST have verified a person token before it issues a resource token. mission_s256 arrives inside it; there is no AAuth-Mission header in -11.",
-        "The resource issues aud=AS (four-party) and copies ps, sub, person_token_jti and mission_s256 into the resource token.",
+        "The resource issues aud=AS (four-party) and copies ps, sub, presented_jti and mission_s256 into the resource token.",
         "AAuth-Capabilities is still a resource-request header — that has not changed."
       ],
       "is_response": false
@@ -595,7 +595,7 @@
         {
           "name": "Resource Token",
           "typ": "aa-resource+jwt",
-          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwZXJzb25fdG9rZW5fanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
+          "raw": "eyJhbGciOiJFZERTQSIsImtpZCI6InJlc291cmNlLWtleS0xIiwidHlwIjoiYWEtcmVzb3VyY2Urand0In0.eyJpc3MiOiJodHRwczovL2FwaS5leGFtcGxlIiwiZHdrIjoiYWF1dGgtcmVzb3VyY2UuanNvbiIsImF1ZCI6Imh0dHBzOi8vYXMuZXhhbXBsZSIsImp0aSI6IjQwZDIyZWY3LWY5ODUtNDY0MS05M2Q2LTBjOWMyZDRmYmMxZCIsInBzIjoiaHR0cHM6Ly9wcy5leGFtcGxlIiwic3ViIjoiOGYxNGU0NWZjZWVhMTY3YTVhMzZkZWRkNGJlYTI1NDMiLCJwcmVzZW50ZWRfanRpIjoicHQtMzJkNjUzIiwiYWdlbnRfamt0IjoiNWo1V011SVR1OC1jVjFSZENsVWVOZ25TZzNhTEpwQ1lpRnZ6Y3dEZ1loSSIsInNjb3BlIjoicmVhZCIsIm1pc3Npb25fczI1NiI6IjdTR1RGc3VLQ2NwWUp3R1JrVkJpOHZPYzFTc203TmRnblZhQXJ1Szg3UmciLCJpYXQiOjE3NzYyMjI4OTQsImV4cCI6MTc3NjIyMzQ5NH0.ewckxdV7ZsyDJiiYgSWM5f5pDcV3ZfAtbGSXmYlGZqhTEYboMsqWcYsyI8fa1BEWoUznry0OgycGDl76dl32Bw",
           "header": {
             "alg": "EdDSA",
             "kid": "resource-key-1",
@@ -608,7 +608,7 @@
             "jti": "40d22ef7-f985-4641-93d6-0c9c2d4fbc1d",
             "ps": "https://ps.example",
             "sub": "8f14e45fceea167a5a36dedd4bea2543",
-            "person_token_jti": "pt-32d653",
+            "presented_jti": "pt-32d653",
             "agent_jkt": "5j5WMuITu8-cV1RdClUeNgnSg3aLJpCYiFvzcwDgYhI",
             "scope": "read",
             "mission_s256": "7SGTFsuKCcpYJwGRkVBi8vOc1Ssm7NdgnVaAruK87Rg",
@@ -634,7 +634,7 @@
       },
       "annotations": [
         "The agent submits the mission-bound resource token to the PS's auth_token_endpoint (token_endpoint before -11).",
-        "The PS resolves the person token named by person_token_jti and rejects any mismatch in ps, sub, mission_s256 or tenant.",
+        "The PS resolves the person token named by presented_jti and rejects any mismatch in ps, sub, mission_s256 or tenant.",
         "It then federates to the AS, signing with its own identity and passing the agent token alongside the resource token.",
         "The AS copies mission_s256 into the auth token unchanged. iss=AS, dwk=aauth-access.json."
       ],
