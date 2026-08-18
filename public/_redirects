@@ -1,0 +1,5 @@
+# Routes renamed/removed in the AAuth -11 rework (PR #5)
+/r3/conditional-ops /r3/per-call-ops 301
+/r3/conditional-ops/ /r3/per-call-ops 301
+/access/user-delegation /access/federated 301
+/access/user-delegation/ /access/federated 301
