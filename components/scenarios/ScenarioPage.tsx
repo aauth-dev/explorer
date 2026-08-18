@@ -18,12 +18,12 @@ import { R3DocumentViewer } from "@/components/core/R3DocumentViewer";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_COLORS = {
-  signing: "text-blue-400 bg-blue-500/10",
-  access: "text-green-400 bg-green-500/10",
-  missions: "text-purple-400 bg-purple-500/10",
-  advanced: "text-orange-400 bg-orange-500/10",
-  bootstrap: "text-violet-400 bg-violet-500/10",
-  r3: "text-teal-400 bg-teal-500/10",
+  signing: "text-blue-600 dark:text-blue-400 bg-blue-500/10",
+  access: "text-green-600 dark:text-green-400 bg-green-500/10",
+  missions: "text-purple-600 dark:text-purple-400 bg-purple-500/10",
+  advanced: "text-orange-600 dark:text-orange-400 bg-orange-500/10",
+  bootstrap: "text-violet-600 dark:text-violet-400 bg-violet-500/10",
+  r3: "text-teal-600 dark:text-teal-400 bg-teal-500/10",
 };
 
 const MIN_DETAILS_WIDTH_PX = 260;
@@ -239,10 +239,10 @@ export function ScenarioPage({ scenario }: ScenarioPageProps) {
                   className={cn(
                     "ml-auto shrink-0 font-mono text-[10px] font-bold",
                     step.response_status < 300
-                      ? "text-green-400"
+                      ? "text-green-600 dark:text-green-400"
                       : step.response_status < 400
-                        ? "text-blue-400"
-                        : "text-amber-400"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-amber-700 dark:text-amber-400"
                   )}
                 >
                   {step.response_status}

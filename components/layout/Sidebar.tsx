@@ -40,14 +40,14 @@ const PROTOCOL_NAV: NavSection[] = [
   {
     title: "Agent Identity",
     icon: Key,
-    color: "text-blue-400",
+    color: "text-blue-600 dark:text-blue-400",
     items: [{ label: "Agent Tokens (sig=jwt)", href: "/signing/agent-tokens" }],
     footerNote: { label: "Full signing reference →", href: "/foundations/profile" },
   },
   {
     title: "Resource Access",
     icon: Lock,
-    color: "text-green-400",
+    color: "text-green-600 dark:text-green-400",
     items: [
       { label: "Agent Identity", href: "/access/identity-based" },
       { label: "Resource-Managed (2-party)", href: "/access/resource-managed" },
@@ -60,7 +60,7 @@ const PROTOCOL_NAV: NavSection[] = [
   {
     title: "Missions — experimental",
     icon: FileText,
-    color: "text-purple-400",
+    color: "text-purple-600 dark:text-purple-400",
     items: [
       { label: "Proposal & Approval", href: "/missions/lifecycle" },
       { label: "Mission Context at a Resource", href: "/missions/resource-access" },
@@ -75,7 +75,7 @@ const PROTOCOL_NAV: NavSection[] = [
   {
     title: "Advanced Patterns",
     icon: Zap,
-    color: "text-orange-400",
+    color: "text-orange-600 dark:text-orange-400",
     items: [
       { label: "Call Chaining", href: "/advanced/call-chaining" },
       { label: "Clarification Chat", href: "/advanced/clarification" },
@@ -85,7 +85,7 @@ const PROTOCOL_NAV: NavSection[] = [
   {
     title: "Rich Resource Requests (R3) — experimental",
     icon: Database,
-    color: "text-teal-400",
+    color: "text-teal-600 dark:text-teal-400",
     items: [
       { label: "Vocabulary-Based Access", href: "/r3/vocabulary-basics" },
       { label: "Per-Call Operations", href: "/r3/per-call-ops" },
@@ -98,7 +98,7 @@ const SIGNING_NAV: NavSection[] = [
   {
     title: "Foundations",
     icon: Layers,
-    color: "text-cyan-400",
+    color: "text-cyan-600 dark:text-cyan-400",
     items: [
       { label: "HTTP Signatures Profile", href: "/foundations/profile" },
       { label: "Signature-Key Schemes", href: "/foundations/schemes" },
@@ -108,7 +108,7 @@ const SIGNING_NAV: NavSection[] = [
   {
     title: "Message Signing",
     icon: Radio,
-    color: "text-blue-400",
+    color: "text-blue-600 dark:text-blue-400",
     items: [
       { label: "Pseudonymous (sig=hwk)", href: "/signing/pseudonymous" },
       { label: "Hardware-backed (sig=jkt-jwt)", href: "/signing/hardware-backed" },
@@ -123,7 +123,7 @@ const BOOTSTRAP_NAV: NavSection[] = [
   {
     title: "Bootstrap",
     icon: GitBranch,
-    color: "text-violet-400",
+    color: "text-violet-600 dark:text-violet-400",
     items: [
       { label: "Overview", href: "/bootstrap" },
       { label: "Web App", href: "/bootstrap/web-app" },
@@ -135,7 +135,7 @@ const BOOTSTRAP_NAV: NavSection[] = [
   {
     title: "Renewal",
     icon: GitBranch,
-    color: "text-violet-400",
+    color: "text-violet-600 dark:text-violet-400",
     items: [
       { label: "Mobile (jkt-jwt)", href: "/bootstrap/renewal-mobile" },
       { label: "Web App (WebAuthn)", href: "/bootstrap/renewal-web-app" },

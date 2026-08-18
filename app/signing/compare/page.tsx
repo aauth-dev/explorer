@@ -20,11 +20,11 @@ const MODES = [
     id: "hwk",
     label: "Pseudonymous",
     sublabel: "sig=hwk",
-    color: "text-blue-400",
+    color: "text-blue-600 dark:text-blue-400",
     border: "border-blue-500/40",
     href: "/signing/pseudonymous",
     sigKeyHeader: 'sig=hwk;jwk={"kty":"OKP","crv":"Ed25519","x":"<pub>","kid":"k1"}',
-    sigKeyHighlight: "text-blue-300",
+    sigKeyHighlight: "text-blue-700 dark:text-blue-300",
     trustLevel: "Key possession",
     resourceLearns: "A specific key signed this — identity unknown",
     useCase: "Anonymous but accountable access, rate-limiting by key",
@@ -34,11 +34,11 @@ const MODES = [
     id: "jwks_uri",
     label: "Agent Identity",
     sublabel: "sig=jwks_uri",
-    color: "text-green-400",
+    color: "text-green-600 dark:text-green-400",
     border: "border-green-500/40",
     href: "/signing/identity",
     sigKeyHeader: 'sig=jwks_uri;id="http://agent:8001";kid="key-1"',
-    sigKeyHighlight: "text-green-300",
+    sigKeyHighlight: "text-green-700 dark:text-green-300",
     trustLevel: "Cryptographic identity",
     resourceLearns: "Full agent identifier + verifiable public key (via JWKS)",
     useCase: "Access control by agent identity, replacing API keys",
@@ -48,11 +48,11 @@ const MODES = [
     id: "jwt",
     label: "Agent Token",
     sublabel: "sig=jwt",
-    color: "text-purple-400",
+    color: "text-purple-600 dark:text-purple-400",
     border: "border-purple-500/40",
     href: "/access/federated",
     sigKeyHeader: 'sig=jwt;jwt="eyJhbGciOiJFZERTQSIsInR5cCI6ImFhLWFnZW50K2p3dCJ9…"',
-    sigKeyHighlight: "text-purple-300",
+    sigKeyHighlight: "text-purple-700 dark:text-purple-300",
     trustLevel: "Signed identity + Person Server",
     resourceLearns: "Agent identity, PS URL, bound signing key, delegation chain",
     useCase: "Full PS-AS authorization flows, mission context",
@@ -71,7 +71,7 @@ export default function SigningComparePage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 space-y-10">
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Message Signing</p>
+        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Message Signing</p>
         <h1 className="text-3xl font-bold">Signing Mode Comparison</h1>
         <p className="text-muted-foreground max-w-2xl">
           All AAuth signing modes use HTTP Message Signatures (RFC 9421). The difference is what appears
@@ -130,7 +130,7 @@ export default function SigningComparePage() {
                     <td key={m.id} className="px-4 py-3">
                       <div className="flex justify-center">
                         {m.features[f.key]
-                          ? <CheckCircle className="h-4 w-4 text-green-400" />
+                          ? <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                           : <XCircle className="h-4 w-4 text-zinc-700" />}
                       </div>
                     </td>

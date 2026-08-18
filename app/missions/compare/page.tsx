@@ -43,7 +43,7 @@ const WITHOUT = {
 
 const WITH = {
   label: "With Missions",
-  color: "text-purple-400",
+  color: "text-purple-600 dark:text-purple-400",
   border: "border-purple-500/40",
   headers: {
     request: {
@@ -126,7 +126,7 @@ export default function MissionsComparePage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 space-y-10">
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Missions</p>
+        <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Missions</p>
         <h1 className="text-3xl font-bold">With vs Without Missions</h1>
         <p className="text-muted-foreground max-w-2xl">
           Missions are an optional governance layer that works with any resource access mode that
@@ -147,7 +147,7 @@ export default function MissionsComparePage() {
               <tr className="border-b border-border bg-muted/20">
                 <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">Protocol element</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-zinc-400">Without</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-purple-400">With Missions</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-purple-600 dark:text-purple-400">With Missions</th>
               </tr>
             </thead>
             <tbody>
@@ -157,13 +157,13 @@ export default function MissionsComparePage() {
                   <td className="px-4 py-3">
                     <div className="flex justify-center">
                       {a.without
-                        ? <CheckCircle className="h-4 w-4 text-green-400" />
+                        ? <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                         : <XCircle className="h-4 w-4 text-zinc-700" />}
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center">
-                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                   </td>
                 </tr>
@@ -232,7 +232,7 @@ export default function MissionsComparePage() {
           ))}
         </ol>
         <div className="flex flex-wrap gap-3 pt-2">
-          <Link href="/missions/lifecycle" className="flex items-center gap-1 text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors">
+          <Link href="/missions/lifecycle" className="flex items-center gap-1 text-xs font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
             Mission Proposal Demo <ArrowRight className="h-3 w-3" />
           </Link>
           <Link href="/missions/end-to-end" className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">

@@ -21,7 +21,7 @@ export function S256ChainVisualization({ links }: S256ChainVisualizationProps) {
         {links.map((link, index) => (
           <div key={`${link.label}-${index}`} className="flex items-start gap-3">
             <div className="pt-0.5">
-              <CheckCircle2 className="h-4 w-4 text-green-400" />
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
             </div>
             <div className="min-w-0 flex-1 rounded-lg border border-border bg-muted/10 p-3">
               <div className="flex flex-wrap items-center gap-2">
@@ -30,7 +30,7 @@ export function S256ChainVisualization({ links }: S256ChainVisualizationProps) {
                   {link.source}
                 </span>
               </div>
-              <p className="mt-2 break-all font-mono text-[11px] text-blue-300">
+              <p className="mt-2 break-all font-mono text-[11px] text-blue-700 dark:text-blue-300">
                 {link.s256}
               </p>
               <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">

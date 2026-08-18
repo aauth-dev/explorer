@@ -25,7 +25,7 @@ const LAYERS = [
     title: "Identity",
     Icon: Radio,
     accent: "border-blue-500/35 hover:border-blue-500/55",
-    iconWrap: "bg-blue-500/15 text-blue-400",
+    iconWrap: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
     body: "How an agent cryptographically proves who it is on every request — from pseudonymous keys (no account) to agent tokens that bind a signing key to an identifier. Built on HTTP Message Signatures and the Signature-Key header.",
     links: [
       { href: "/signing/compare", label: "Compare signing modes" },
@@ -36,7 +36,7 @@ const LAYERS = [
     title: "Resource access",
     Icon: Lock,
     accent: "border-green-500/35 hover:border-green-500/55",
-    iconWrap: "bg-green-500/15 text-green-400",
+    iconWrap: "bg-green-500/15 text-green-600 dark:text-green-400",
     body: "How a protected API decides what the agent may do. Five modes, sorted by what the resource ends up knowing: which agent, which person (its own flow, or a login the Person Server ran), person plus consented scope, or person plus an Access Server's policy verdict.",
     links: [
       { href: "/access/compare", label: "Compare access modes" },
@@ -47,7 +47,7 @@ const LAYERS = [
     title: "Mission",
     Icon: FileText,
     accent: "border-purple-500/35 hover:border-purple-500/55",
-    iconWrap: "bg-purple-500/15 text-purple-400",
+    iconWrap: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
     body: "Optional governance: the agent proposes a mission; the Person Server approves it, returns the blob and its digest, and threads that digest through every token it later issues. Also covers delegation across resources and advanced interaction patterns.",
     links: [
       { href: "/missions/compare", label: "Missions vs no mission" },

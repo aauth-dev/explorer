@@ -101,7 +101,7 @@ export function MissionBlobViewer({ mission }: MissionBlobViewerProps) {
               {mission.approved_tools.map((tool) => (
                 <div key={tool.name} className="rounded-lg border border-border bg-muted/10 p-3">
                   <div className="flex items-center gap-2">
-                    <Wrench className="h-3.5 w-3.5 text-orange-300" />
+                    <Wrench className="h-3.5 w-3.5 text-orange-700 dark:text-orange-300" />
                     <span className="text-xs font-medium">{tool.name}</span>
                   </div>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">

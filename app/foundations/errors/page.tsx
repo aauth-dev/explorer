@@ -75,8 +75,8 @@ export default function ErrorModelPage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-cyan-400" />
-          <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Foundations</p>
+          <Layers className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Foundations</p>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Error Model</h1>
         <p className="text-muted-foreground max-w-3xl leading-relaxed">
@@ -140,7 +140,7 @@ Content-Type: application/problem+json
                   className={`border-b border-border ${i % 2 ? "bg-muted/10" : ""}`}
                 >
                   <td className="px-5 py-4 align-top">
-                    <code className="text-[11px] font-mono text-red-300 bg-red-500/10 rounded px-2 py-0.5">
+                    <code className="text-[11px] font-mono text-red-700 dark:text-red-300 bg-red-500/10 rounded px-2 py-0.5">
                       {e.code}
                     </code>
                   </td>
@@ -166,8 +166,8 @@ Content-Type: application/problem+json
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-red-500/40 bg-red-500/5 p-5 space-y-2">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-300" />
-              <p className="text-sm font-semibold text-red-300">401 + Signature-Error</p>
+              <AlertCircle className="h-4 w-4 text-red-700 dark:text-red-300" />
+              <p className="text-sm font-semibold text-red-700 dark:text-red-300">401 + Signature-Error</p>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               The signature or its keying material is wrong. The client can (and often should)

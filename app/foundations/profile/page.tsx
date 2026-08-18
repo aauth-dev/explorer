@@ -56,8 +56,8 @@ export default function SignaturesProfilePage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-cyan-400" />
-          <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Foundations</p>
+          <Layers className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Foundations</p>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">HTTP Signatures Profile</h1>
         <p className="text-muted-foreground max-w-3xl leading-relaxed">
@@ -75,7 +75,7 @@ export default function SignaturesProfilePage() {
         <div className="rounded-xl border border-border bg-card p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-lg border border-cyan-500/40 bg-cyan-500/5 p-4 space-y-2">
-              <p className="text-xs font-semibold text-cyan-300">AAuth SPEC</p>
+              <p className="text-xs font-semibold text-cyan-700 dark:text-cyan-300">AAuth SPEC</p>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Profiles 4 schemes, pins Ed25519/P-256, fixes base covered components, sets 60s
                 validity window, defines <code className="text-[10px]">dwk</code> values.
@@ -130,10 +130,10 @@ export default function SignaturesProfilePage() {
                     <span
                       className={
                         a.level === "MUST"
-                          ? "text-green-400 font-semibold"
+                          ? "text-green-600 dark:text-green-400 font-semibold"
                           : a.level === "SHOULD"
-                            ? "text-blue-400 font-semibold"
-                            : "text-red-400 font-semibold"
+                            ? "text-blue-600 dark:text-blue-400 font-semibold"
+                            : "text-red-600 dark:text-red-400 font-semibold"
                       }
                     >
                       {a.level}
@@ -175,15 +175,15 @@ export default function SignaturesProfilePage() {
             <tbody>
               {COVERED_COMPONENTS.map((c, i) => (
                 <tr key={c.name} className={`border-b border-border ${i % 2 ? "bg-muted/10" : ""}`}>
-                  <td className="px-5 py-3 text-sm font-mono text-blue-300">{c.name}</td>
+                  <td className="px-5 py-3 text-sm font-mono text-blue-700 dark:text-blue-300">{c.name}</td>
                   <td className="px-5 py-3 text-xs">
                     {c.required === "base" && (
-                      <span className="inline-flex items-center gap-1 text-green-400 font-semibold">
+                      <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-semibold">
                         <CheckCircle className="h-3 w-3" /> base
                       </span>
                     )}
                     {c.required === "conditional" && (
-                      <span className="text-blue-300 font-semibold">conditional</span>
+                      <span className="text-blue-700 dark:text-blue-300 font-semibold">conditional</span>
                     )}
                     {c.required === "optional" && (
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
@@ -211,7 +211,7 @@ export default function SignaturesProfilePage() {
               REQUIRED on every signature. The server rejects signatures outside a validity window
               relative to its current time.
             </p>
-            <pre className="mt-2 rounded bg-muted/50 p-2.5 text-[10px] font-mono text-blue-300 overflow-x-auto">
+            <pre className="mt-2 rounded bg-muted/50 p-2.5 text-[10px] font-mono text-blue-700 dark:text-blue-300 overflow-x-auto">
 {`Signature-Input: sig=("@method" "@authority"
     "@path" "signature-key");created=1730217600`}
             </pre>
@@ -256,7 +256,7 @@ export default function SignaturesProfilePage() {
             <tbody>
               {DWK_VALUES.map((d, i) => (
                 <tr key={d.value} className={`border-b border-border ${i % 2 ? "bg-muted/10" : ""}`}>
-                  <td className="px-5 py-3 text-sm font-mono text-cyan-300">{d.value}</td>
+                  <td className="px-5 py-3 text-sm font-mono text-cyan-700 dark:text-cyan-300">{d.value}</td>
                   <td className="px-5 py-3 text-xs text-muted-foreground">{d.owner}</td>
                   <td className="px-5 py-3 text-xs text-muted-foreground">{d.contains}</td>
                 </tr>
@@ -272,7 +272,7 @@ export default function SignaturesProfilePage() {
           href="/foundations/schemes"
           className="group rounded-xl border border-border bg-card p-5 space-y-2 hover:border-cyan-500/40 transition-colors"
         >
-          <p className="text-xs font-semibold text-cyan-400">Next</p>
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Next</p>
           <p className="text-sm font-semibold">Signature-Key Schemes →</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             The four schemes AAuth uses (and the one it doesn&apos;t).
@@ -285,7 +285,7 @@ export default function SignaturesProfilePage() {
           href="/foundations/errors"
           className="group rounded-xl border border-border bg-card p-5 space-y-2 hover:border-cyan-500/40 transition-colors"
         >
-          <p className="text-xs font-semibold text-cyan-400">See also</p>
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">See also</p>
           <p className="text-sm font-semibold">Error Model →</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             How verification failures are signaled with <code className="text-[10px]">Signature-Error</code>.
