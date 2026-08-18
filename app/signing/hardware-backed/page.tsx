@@ -7,14 +7,14 @@ export default function HardwareBackedPage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Radio className="h-4 w-4 text-blue-400" />
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+          <Radio className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             Message Signing · Pseudonymous tier
           </p>
         </div>
         <div className="flex flex-wrap items-baseline gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Hardware-backed</h1>
-          <code className="text-sm font-mono text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
+          <code className="text-sm font-mono text-blue-700 dark:text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
             sig=jkt-jwt
           </code>
         </div>
@@ -28,7 +28,7 @@ export default function HardwareBackedPage() {
       {/* Why this exists */}
       <section className="rounded-xl border border-border bg-card p-6 space-y-3">
         <div className="flex items-center gap-2">
-          <Cpu className="h-4 w-4 text-blue-400" />
+          <Cpu className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           <h2 className="text-sm font-semibold">Why a second pseudonymous scheme?</h2>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
@@ -75,7 +75,7 @@ export default function HardwareBackedPage() {
           ].map((s) => (
             <div key={s.step} className="rounded-xl border border-border bg-card p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-[10px] font-mono text-blue-300">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-[10px] font-mono text-blue-700 dark:text-blue-300">
                   {s.step}
                 </span>
                 <p className="text-xs font-semibold text-foreground">{s.title}</p>
@@ -147,7 +147,7 @@ Signature-Key: sig=jkt-jwt;jwt="eyJ0eXA…"`}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-border bg-card p-5 space-y-2">
             <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4 text-blue-400" />
+              <RefreshCw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <p className="text-sm font-semibold">Agent-token renewal from a stable key</p>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -162,7 +162,7 @@ Signature-Key: sig=jkt-jwt;jwt="eyJ0eXA…"`}
           </div>
           <div className="rounded-xl border border-border bg-card p-5 space-y-2">
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-blue-400" />
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <p className="text-sm font-semibold">Mobile / IoT / laptop agents</p>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -184,8 +184,8 @@ Signature-Key: sig=jkt-jwt;jwt="eyJ0eXA…"`}
             <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground">&nbsp;</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-blue-400">sig=hwk</th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-blue-400">sig=jkt-jwt</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-blue-600 dark:text-blue-400">sig=hwk</th>
+                <th className="text-left px-5 py-3 text-xs font-medium text-blue-600 dark:text-blue-400">sig=jkt-jwt</th>
               </tr>
             </thead>
             <tbody>
@@ -228,7 +228,7 @@ Signature-Key: sig=jkt-jwt;jwt="eyJ0eXA…"`}
           href="/signing/pseudonymous"
           className="group rounded-xl border border-border bg-card p-5 space-y-2 hover:border-blue-500/40 transition-colors"
         >
-          <p className="text-xs font-semibold text-blue-400">Same tier</p>
+          <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Same tier</p>
           <p className="text-sm font-semibold">Pseudonymous (sig=hwk) →</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             The inline-key variant — no hardware, no JWT wrapper.
@@ -241,7 +241,7 @@ Signature-Key: sig=jkt-jwt;jwt="eyJ0eXA…"`}
           href="/foundations/schemes"
           className="group rounded-xl border border-border bg-card p-5 space-y-2 hover:border-cyan-500/40 transition-colors"
         >
-          <p className="text-xs font-semibold text-cyan-400">Foundations</p>
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Foundations</p>
           <p className="text-sm font-semibold">Signature-Key Schemes →</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             All four schemes AAuth uses, side-by-side.

@@ -8,7 +8,7 @@ const SCHEMES = [
     fullName: "Header Web Key",
     inAAuth: true,
     tier: "Pseudonymous",
-    tierColor: "text-blue-400",
+    tierColor: "text-blue-600 dark:text-blue-400",
     tierBorder: "border-blue-500/40",
     summary:
       "Public key inline in the header. Self-contained verification — no fetches, no issuer, no identity.",
@@ -25,7 +25,7 @@ const SCHEMES = [
     fullName: "JKT JWT Self-Issued Key Delegation",
     inAAuth: true,
     tier: "Pseudonymous",
-    tierColor: "text-blue-400",
+    tierColor: "text-blue-600 dark:text-blue-400",
     tierBorder: "border-blue-500/40",
     summary:
       "A JWT signed by an enclave/hardware key delegates to a fast ephemeral signing key via the cnf claim. Identity is a JWK Thumbprint URN (TOFU).",
@@ -42,7 +42,7 @@ const SCHEMES = [
     fullName: "JWKS URI Discovery",
     inAAuth: true,
     tier: "Identity",
-    tierColor: "text-green-400",
+    tierColor: "text-green-600 dark:text-green-400",
     tierBorder: "border-green-500/40",
     summary:
       "The Signature-Key references an HTTPS identifier. The verifier fetches {id}/.well-known/{dwk}, reads jwks_uri, resolves the kid.",
@@ -60,7 +60,7 @@ const SCHEMES = [
     fullName: "JWT Confirmation Key",
     inAAuth: true,
     tier: "Identity",
-    tierColor: "text-green-400",
+    tierColor: "text-green-600 dark:text-green-400",
     tierBorder: "border-green-500/40",
     summary:
       "A signed JWT (with iss + dwk) carries the public key in its cnf claim. Verifier checks the JWT, then verifies the HTTP signature with the cnf key.",
@@ -89,8 +89,8 @@ export default function SchemesPage() {
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-cyan-400" />
-          <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Foundations</p>
+          <Layers className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+          <p className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">Foundations</p>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Signature-Key Schemes</h1>
         <p className="text-muted-foreground max-w-3xl leading-relaxed">
@@ -108,8 +108,8 @@ export default function SchemesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl border border-blue-500/40 bg-blue-500/5 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-blue-300">Pseudonymous tier</p>
-              <code className="text-[10px] font-mono text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
+              <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Pseudonymous tier</p>
+              <code className="text-[10px] font-mono text-blue-700 dark:text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
                 sigkey=jkt
               </code>
             </div>
@@ -118,18 +118,18 @@ export default function SchemesPage() {
               anonymous-but-accountable access, hardware-backed device identity.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="text-[11px] font-mono text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
+              <code className="text-[11px] font-mono text-blue-700 dark:text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
                 sig=hwk
               </code>
-              <code className="text-[11px] font-mono text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
+              <code className="text-[11px] font-mono text-blue-700 dark:text-blue-300 bg-blue-500/10 rounded px-2 py-0.5">
                 sig=jkt-jwt
               </code>
             </div>
           </div>
           <div className="rounded-xl border border-green-500/40 bg-green-500/5 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-green-300">Identity tier</p>
-              <code className="text-[10px] font-mono text-green-300 bg-green-500/10 rounded px-2 py-0.5">
+              <p className="text-sm font-semibold text-green-700 dark:text-green-300">Identity tier</p>
+              <code className="text-[10px] font-mono text-green-700 dark:text-green-300 bg-green-500/10 rounded px-2 py-0.5">
                 sigkey=uri
               </code>
             </div>
@@ -138,10 +138,10 @@ export default function SchemesPage() {
               This is how AAuth tokens (agent/resource/auth) are presented.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="text-[11px] font-mono text-green-300 bg-green-500/10 rounded px-2 py-0.5">
+              <code className="text-[11px] font-mono text-green-700 dark:text-green-300 bg-green-500/10 rounded px-2 py-0.5">
                 sig=jwks_uri
               </code>
-              <code className="text-[11px] font-mono text-green-300 bg-green-500/10 rounded px-2 py-0.5">
+              <code className="text-[11px] font-mono text-green-700 dark:text-green-300 bg-green-500/10 rounded px-2 py-0.5">
                 sig=jwt
               </code>
             </div>
@@ -258,7 +258,7 @@ export default function SchemesPage() {
                   {row.values.map((v, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="flex justify-center">
-                        {v === true && <CheckCircle className="h-4 w-4 text-green-400" />}
+                        {v === true && <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />}
                         {v === false && <XCircle className="h-4 w-4 text-zinc-700" />}
                         {v === "maybe" && (
                           <span className="text-[10px] font-mono text-muted-foreground">

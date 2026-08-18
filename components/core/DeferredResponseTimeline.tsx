@@ -5,9 +5,9 @@ import { DeferredTimeline } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function statusColor(status: number) {
-  if (status === 202) return "text-blue-300 border-blue-500/30 bg-blue-500/10";
-  if (status >= 200 && status < 300) return "text-green-300 border-green-500/30 bg-green-500/10";
-  if (status >= 400) return "text-red-300 border-red-500/30 bg-red-500/10";
+  if (status === 202) return "text-blue-700 dark:text-blue-300 border-blue-500/30 bg-blue-500/10";
+  if (status >= 200 && status < 300) return "text-green-700 dark:text-green-300 border-green-500/30 bg-green-500/10";
+  if (status >= 400) return "text-red-700 dark:text-red-300 border-red-500/30 bg-red-500/10";
   return "text-muted-foreground border-border bg-muted/10";
 }
 

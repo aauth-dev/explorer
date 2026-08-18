@@ -6,7 +6,7 @@ const MODES = [
     id: "identity-based",
     label: "Agent identity",
     parties: "Agent + Resource",
-    color: "text-green-400",
+    color: "text-green-600 dark:text-green-400",
     border: "border-green-500/30",
     href: "/access/identity-based",
     participants: ["Agent", "Resource"],
@@ -24,7 +24,7 @@ const MODES = [
     id: "resource-managed",
     label: "Resource-managed",
     parties: "Two-Party",
-    color: "text-cyan-400",
+    color: "text-cyan-600 dark:text-cyan-400",
     border: "border-cyan-500/30",
     href: "/access/resource-managed",
     participants: ["Agent", "Resource"],
@@ -45,7 +45,7 @@ const MODES = [
     id: "person-identity",
     label: "Person identity",
     parties: "Three-Party",
-    color: "text-sky-400",
+    color: "text-sky-600 dark:text-sky-400",
     border: "border-sky-500/30",
     href: "/access/person-identity",
     participants: ["Agent", "Resource", "Person Server"],
@@ -65,7 +65,7 @@ const MODES = [
     id: "ps-asserted",
     label: "PS authorization",
     parties: "Three-Party",
-    color: "text-purple-400",
+    color: "text-purple-600 dark:text-purple-400",
     border: "border-purple-500/30",
     href: "/access/ps-asserted",
     participants: ["Agent", "Resource", "Person Server"],
@@ -87,7 +87,7 @@ const MODES = [
     id: "federated",
     label: "Federated authorization",
     parties: "Four-Party",
-    color: "text-orange-400",
+    color: "text-orange-600 dark:text-orange-400",
     border: "border-orange-500/30",
     href: "/access/federated",
     participants: ["Agent", "Resource", "Person Server", "Access Server"],
@@ -112,7 +112,7 @@ export default function AccessComparePage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 space-y-10">
       <div className="space-y-2">
-        <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Resource Access</p>
+        <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider">Resource Access</p>
         <h1 className="text-3xl font-bold">Resource Access Mode Comparison</h1>
         <p className="text-muted-foreground max-w-3xl">
           AAuth defines five resource access modes, sorted by what the resource ends up knowing
@@ -222,15 +222,15 @@ export default function AccessComparePage() {
           need more, and keeps serving the rest on the person token.
         </p>
         <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-muted-foreground">
-          <span className="text-green-400">Agent identity</span>
+          <span className="text-green-600 dark:text-green-400">Agent identity</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-cyan-400">Resource-managed</span>
+          <span className="text-cyan-600 dark:text-cyan-400">Resource-managed</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-sky-400">Person identity</span>
+          <span className="text-sky-600 dark:text-sky-400">Person identity</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-purple-400">PS authorization</span>
+          <span className="text-purple-600 dark:text-purple-400">PS authorization</span>
           <ArrowRight className="h-3 w-3" />
-          <span className="text-orange-400">Federated authorization</span>
+          <span className="text-orange-600 dark:text-orange-400">Federated authorization</span>
         </div>
       </div>
 

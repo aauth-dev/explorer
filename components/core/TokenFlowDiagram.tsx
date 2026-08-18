@@ -5,16 +5,16 @@ import { Participant, TokenFlow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const ACCENT_STYLES = {
-  resource: "border-green-500/30 bg-green-500/10 text-green-300",
-  auth: "border-blue-500/30 bg-blue-500/10 text-blue-300",
-  agent: "border-orange-500/30 bg-orange-500/10 text-orange-300",
+  resource: "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300",
+  auth: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  agent: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
 };
 
 const EVENT_STYLES = {
   issued: "border border-border bg-muted/20 text-foreground",
   forwarded: "border border-border bg-card text-muted-foreground",
-  returned: "border border-border bg-blue-500/10 text-blue-300",
-  presented: "border border-border bg-amber-500/10 text-amber-300",
+  returned: "border border-border bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  presented: "border border-border bg-amber-500/10 text-amber-700 dark:text-amber-300",
 };
 
 interface TokenFlowDiagramProps {

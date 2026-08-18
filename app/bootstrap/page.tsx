@@ -62,9 +62,9 @@ export default function BootstrapPage() {
 
       {/* Status banner */}
       <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 flex items-start gap-3">
-        <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+        <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 mt-0.5 shrink-0" />
         <div className="space-y-1.5 text-sm">
-          <p className="font-medium text-amber-100">Informational — not normative protocol</p>
+          <p className="font-medium text-amber-700 dark:text-amber-100">Informational — not normative protocol</p>
           <p className="text-muted-foreground leading-relaxed">
             As of <code className="font-mono bg-muted px-1 py-px rounded text-xs">-01</code>, the
             Bootstrap document is informational guidance for agent provider implementers. The
@@ -84,7 +84,7 @@ export default function BootstrapPage() {
         <h2 className="font-semibold">What bootstrap is — and is not</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-violet-400">Bootstrap is</p>
+            <p className="text-xs font-semibold text-violet-600 dark:text-violet-400">Bootstrap is</p>
             <ul className="text-xs text-muted-foreground leading-relaxed list-disc list-inside space-y-1">
               <li>The AP-side ceremony that produces an agent token</li>
               <li>Per-platform key handling (durable + ephemeral)</li>
@@ -111,7 +111,7 @@ export default function BootstrapPage() {
         <h2 className="font-semibold">Two-key pattern</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-blue-400">Durable key</p>
+            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400">Durable key</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Lifetime spans the agent install. Hardware-bound where the platform supports it
               (Secure Enclave, StrongBox, TPM). Presented only to the AP at refresh; never signs
@@ -119,7 +119,7 @@ export default function BootstrapPage() {
             </p>
           </div>
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-green-400">Ephemeral key</p>
+            <p className="text-xs font-semibold text-green-600 dark:text-green-400">Ephemeral key</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Generated fresh per agent-token issuance. Public part appears in{" "}
               <code className="font-mono bg-muted px-1 py-px rounded">agent_token.cnf.jwk</code>.

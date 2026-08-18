@@ -4,14 +4,14 @@ import { SignatureDetails } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const COMPONENT_COLORS: Record<string, string> = {
-  "@method": "text-blue-400",
-  "@authority": "text-green-400",
-  "@path": "text-purple-400",
-  "@query": "text-orange-400",
-  "@request-target": "text-cyan-400",
-  "content-digest": "text-yellow-400",
-  "signature-key": "text-pink-400",
-  "content-type": "text-indigo-400",
+  "@method": "text-blue-600 dark:text-blue-400",
+  "@authority": "text-green-600 dark:text-green-400",
+  "@path": "text-purple-600 dark:text-purple-400",
+  "@query": "text-orange-600 dark:text-orange-400",
+  "@request-target": "text-cyan-600 dark:text-cyan-400",
+  "content-digest": "text-yellow-700 dark:text-yellow-400",
+  "signature-key": "text-pink-600 dark:text-pink-400",
+  "content-type": "text-indigo-600 dark:text-indigo-400",
 };
 
 function getComponentColor(comp: string): string {

@@ -37,7 +37,7 @@ function CopyButton({ text }: { text: string }) {
       }}
       className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
     >
-      {copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+      {copied ? <Check className="h-3 w-3 text-green-600 dark:text-green-400" /> : <Copy className="h-3 w-3" />}
     </button>
   );
 }
@@ -62,13 +62,13 @@ function HeaderRow({ name, value }: { name: string; value: string }) {
             <span
               className={cn(
                 "text-[11px] font-semibold font-mono",
-                isAAuth ? "text-blue-400" : "text-foreground/80"
+                isAAuth ? "text-blue-600 dark:text-blue-400" : "text-foreground/80"
               )}
             >
               {name}
             </span>
             {isAAuth && (
-              <span className="text-[9px] font-medium bg-blue-500/15 text-blue-400 rounded px-1.5 py-0.5">
+              <span className="text-[9px] font-medium bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded px-1.5 py-0.5">
                 AAuth
               </span>
             )}
@@ -132,10 +132,10 @@ export function HeaderInspector({
 
   const statusColor =
     responseStatus && responseStatus < 300
-      ? "text-green-400"
+      ? "text-green-600 dark:text-green-400"
       : responseStatus && responseStatus < 400
-      ? "text-blue-400"
-      : "text-amber-400";
+      ? "text-blue-600 dark:text-blue-400"
+      : "text-amber-700 dark:text-amber-400";
 
   return (
     <div className="rounded-lg border border-border bg-card overflow-hidden">
@@ -166,7 +166,7 @@ export function HeaderInspector({
       {tab === "request" && method && url && (
         <div className="flex items-baseline gap-2 px-4 py-2.5 border-b border-border bg-muted/5">
           <span className="text-[11px] font-mono font-bold text-foreground/70 shrink-0">{method}</span>
-          <span className="text-[11px] font-mono text-sky-400 break-all">{url}</span>
+          <span className="text-[11px] font-mono text-sky-600 dark:text-sky-400 break-all">{url}</span>
         </div>
       )}
 

@@ -36,15 +36,15 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
       <div className="border-b border-border bg-muted/20 px-4 py-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <FileJson className="h-3.5 w-3.5 text-teal-400" />
+            <FileJson className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
             <span className="text-xs font-semibold">R3 Document</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 text-[10px] font-semibold text-teal-300">
+            <span className="rounded-full bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 text-[10px] font-semibold text-teal-700 dark:text-teal-300">
               {vocabLabel}
             </span>
             {document.parameters && (
-              <span className="rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
+              <span className="rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
                 per-call proposal
               </span>
             )}
@@ -57,7 +57,7 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
             Vocabulary
           </p>
-          <code className="text-[11px] font-mono text-teal-300 bg-teal-500/5 border border-teal-500/20 rounded px-2 py-1 block break-all">
+          <code className="text-[11px] font-mono text-teal-700 dark:text-teal-300 bg-teal-500/5 border border-teal-500/20 rounded px-2 py-1 block break-all">
             {document.vocabulary}
           </code>
         </div>
@@ -102,9 +102,9 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
 
             <div className="rounded-lg border border-border bg-muted/10 p-3">
               <div className="flex items-start gap-2">
-                <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
+                <Info className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-semibold text-blue-400">Summary</p>
+                  <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">Summary</p>
                   <p className="text-xs text-foreground leading-relaxed">{document.display.summary}</p>
                 </div>
               </div>
@@ -113,9 +113,9 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
             {document.display.implications && (
               <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-amber-400">Implications</p>
+                    <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">Implications</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{document.display.implications}</p>
                   </div>
                 </div>
@@ -137,9 +137,9 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
             {document.display.detail && (
               <div className="rounded-lg border border-border bg-muted/10 p-3">
                 <div className="flex items-start gap-2">
-                  <FileJson className="h-3.5 w-3.5 text-teal-400 shrink-0 mt-0.5" />
+                  <FileJson className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
                   <div className="min-w-0 space-y-0.5">
-                    <p className="text-[10px] font-semibold text-teal-300">Detail (Markdown)</p>
+                    <p className="text-[10px] font-semibold text-teal-700 dark:text-teal-300">Detail (Markdown)</p>
                     <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-muted-foreground">
                       {document.display.detail}
                     </pre>
@@ -151,10 +151,10 @@ export function R3DocumentViewer({ document }: R3DocumentViewerProps) {
             {document.display.irreversible && (
               <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                   <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-red-400">Irreversible</p>
-                    <p className="text-xs text-red-300/80 leading-relaxed">{document.display.irreversible}</p>
+                    <p className="text-[10px] font-semibold text-red-600 dark:text-red-400">Irreversible</p>
+                    <p className="text-xs text-red-700 dark:text-red-300/80 leading-relaxed">{document.display.irreversible}</p>
                   </div>
                 </div>
               </div>

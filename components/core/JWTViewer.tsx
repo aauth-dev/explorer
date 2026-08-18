@@ -53,19 +53,19 @@ function JSONValue({ value, depth = 0 }: { value: unknown; depth?: number }) {
 
   if (value === null) return <span className="text-zinc-500">null</span>;
   if (typeof value === "boolean")
-    return <span className="text-orange-400">{value.toString()}</span>;
+    return <span className="text-orange-600 dark:text-orange-400">{value.toString()}</span>;
   if (typeof value === "number")
-    return <span className="text-green-400">{value}</span>;
+    return <span className="text-green-600 dark:text-green-400">{value}</span>;
   if (typeof value === "string") {
     // If it looks like a JWT, truncate it
     if (value.split(".").length === 3 && value.length > 60) {
       return (
-        <span className="text-yellow-300 font-mono text-[11px]">
+        <span className="text-yellow-700 dark:text-yellow-300 font-mono text-[11px]">
           &quot;{value.slice(0, 30)}…&quot;
         </span>
       );
     }
-    return <span className="text-yellow-300">&quot;{value}&quot;</span>;
+    return <span className="text-yellow-700 dark:text-yellow-300">&quot;{value}&quot;</span>;
   }
 
   if (Array.isArray(value)) {
@@ -111,7 +111,7 @@ function JSONValue({ value, depth = 0 }: { value: unknown; depth?: number }) {
         <div className="ml-4">
           {entries.map(([k, v], i) => (
             <div key={k} className="flex flex-wrap items-start gap-x-1">
-              <span className="text-blue-300">
+              <span className="text-blue-700 dark:text-blue-300">
                 &quot;{k}&quot;
                 <ClaimTooltip name={k} />
               </span>
@@ -142,7 +142,7 @@ function CopyButton({ text }: { text: string }) {
       }}
       className="text-muted-foreground hover:text-foreground transition-colors"
     >
-      {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 }
@@ -191,11 +191,11 @@ export function JWTViewer({ token }: JWTViewerProps) {
       {activeTab === "raw" ? (
         /* Raw JWT with color-coded sections */
         <div className="p-4 font-mono text-[11px] leading-relaxed break-all">
-          <span className="text-red-400">{rawHeader}</span>
+          <span className="text-red-600 dark:text-red-400">{rawHeader}</span>
           <span className="text-zinc-500">.</span>
-          <span className="text-purple-400">{rawPayload}</span>
+          <span className="text-purple-600 dark:text-purple-400">{rawPayload}</span>
           <span className="text-zinc-500">.</span>
-          <span className="text-blue-400">{rawSig}</span>
+          <span className="text-blue-600 dark:text-blue-400">{rawSig}</span>
         </div>
       ) : (
         /* Decoded view */
@@ -204,7 +204,7 @@ export function JWTViewer({ token }: JWTViewerProps) {
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-2 w-2 rounded-full bg-red-400" />
-              <span className="text-xs font-semibold text-red-400">Header</span>
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400">Header</span>
             </div>
             <pre className="text-[12px] font-mono leading-relaxed">
               <JSONValue value={token.header} depth={0} />
@@ -215,7 +215,7 @@ export function JWTViewer({ token }: JWTViewerProps) {
           <div className="p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-2 w-2 rounded-full bg-purple-400" />
-              <span className="text-xs font-semibold text-purple-400">Payload</span>
+              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">Payload</span>
             </div>
             <pre className="text-[12px] font-mono leading-relaxed">
               <JSONValue value={token.payload} depth={0} />
